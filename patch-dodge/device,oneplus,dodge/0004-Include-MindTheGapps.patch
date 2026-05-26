@@ -1,0 +1,23 @@
+From f5916337a1964de4052d2981af1ab93711c25a2f Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Thu, 16 Apr 2026 13:44:59 +0800
+Subject: [PATCH] Include MindTheGapps
+
+---
+ lineage_dodge.mk | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lineage_dodge.mk b/lineage_dodge.mk
+index 7b97d74..240db5a 100644
+--- a/lineage_dodge.mk
++++ b/lineage_dodge.mk
+@@ -29,3 +29,6 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
+     DeviceProduct=CPH2653 \
+     SystemDevice=OP5D55L1 \
+     SystemName=CPH2653
++
++
++$(call inherit-product, vendor/gapps/arm64/arm64-vendor.mk)
+-- 
+2.53.0
+

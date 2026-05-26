@@ -1,0 +1,75 @@
+From 41f4d4424b15b20567eb9bf3b464e26c1e296874 Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Fri, 27 Mar 2026 17:00:51 +0800
+Subject: [PATCH 1/2] Add support for OPlus Camera
+
+---
+ BoardConfig.mk        | 2 ++
+ device.mk             | 3 +++
+ extract-files.py      | 8 +++++---
+ proprietary-files.txt | 4 ++++
+ 4 files changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/BoardConfig.mk b/BoardConfig.mk
+index 09819ec..6a9743a 100644
+--- a/BoardConfig.mk
++++ b/BoardConfig.mk
+@@ -31,3 +31,5 @@ TARGET_RECOVERY_UI_MARGIN_HEIGHT := 103
+ 
+ # Include the proprietary files BoardConfig.
+ include vendor/oneplus/dodge/BoardConfigVendor.mk
++
++BUILD_BROKEN_VENDOR_PROPERTY_NAMESPACE := true
+diff --git a/device.mk b/device.mk
+index 040bbad..db2dc96 100644
+--- a/device.mk
++++ b/device.mk
+@@ -87,3 +87,6 @@ $(call inherit-product, device/oneplus/sm8750-common/common.mk)
+ 
+ # Inherit from the proprietary files makefile.
+ $(call inherit-product, vendor/oneplus/dodge/dodge-vendor.mk)
++
++# Camera
++$(call inherit-product-if-exists, vendor/oplus/camera/opluscamera.mk)
+diff --git a/extract-files.py b/extract-files.py
+index 0e56847..be64e99 100755
+--- a/extract-files.py
++++ b/extract-files.py
+@@ -24,9 +24,6 @@ namespace_imports = [
+ ]
+ 
+ blob_fixups: blob_fixups_user_type = {
+-    'odm/etc/camera/CameraHWConfiguration.config': blob_fixup()
+-        .regex_replace(r'(enableSWfdForThirdCamUnit += )TRUE', r'\1FALSE')
+-        .regex_replace(r'(fdSupport += )TRUE;', r'\1FALSE;'),
+     'odm/etc/init/init.camera_process.rc': blob_fixup()
+         .regex_replace('    delete_recursion', '    #delete_recursion'),
+     (
+@@ -73,6 +70,11 @@ blob_fixups: blob_fixups_user_type = {
+         'vendor/lib64/libcamxods.so',
+     ): blob_fixup()
+         .replace_needed('libtinyxml2.so', 'libtinyxml2-v34.so'),
++    'odm/lib64/libsharebuffer_impl.so': blob_fixup()
++        .replace_needed('libutils.so', 'libutils-stock.so')
++        .replace_needed('libui.so', 'libui-stock.so'),
++    'vendor/lib64/libui-stock.so': blob_fixup()
++        .replace_needed('android.hardware.graphics.common-V5-ndk.so', 'android.hardware.graphics.common-V7-ndk.so'),
+ }  # fmt: skip
+ 
+ module = ExtractUtilsModule(
+diff --git a/proprietary-files.txt b/proprietary-files.txt
+index 88e3865..191be1b 100644
+--- a/proprietary-files.txt
++++ b/proprietary-files.txt
+@@ -1646,4 +1646,8 @@ odm/etc/wifi/peach/bdwlang.elf
+ odm/etc/wifi/peach/regdb.bin
+ odm/etc/wifi/peach/regdb_version
+ 
++# Camera
++vendor/lib64/libutils.so:vendor/lib64/libutils-stock.so;FIX_SONAME
++vendor/lib64/libui.so:vendor/lib64/libui-stock.so;FIX_SONAME
++
+ # vi:ft=conf
+-- 
+2.53.0
+

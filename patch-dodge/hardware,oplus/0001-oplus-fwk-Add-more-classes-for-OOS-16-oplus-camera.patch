@@ -1,0 +1,3542 @@
+From 9e89caad3c0d482ea9cf26dc438a555d4307dd58 Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Fri, 27 Mar 2026 18:09:04 +0800
+Subject: [PATCH 1/2] oplus-fwk: Add more classes for OOS 16 oplus camera
+
+---
+ .../src/android/app/OplusActivityManager.java |   34 +
+ .../android/app/OplusWhiteListManager.java    |  148 ++-
+ .../content/res/OplusBaseConfiguration.java   |    2 +-
+ .../hardware/camera2/OplusCameraManager.java  |   31 +
+ .../display/OplusosDisplayManager.java        |   52 +
+ .../src/android/view/OplusWindowManager.java  |    1 +
+ .../oplus/app/IOplusProtectConnection.java    |  161 +++
+ .../app/IOplusTaskInfoChangeListener.java     |   17 +
+ .../app/OplusTaskInfoChangeListener.java      |    9 +
+ .../content/OplusFeatureConfigManager.java    |   18 +
+ .../impl/CameraMetadataNativeWrapper.java     |   76 ++
+ .../src/com/oplus/os/WaveformEffect.java      | 1065 +++++++++++++++++
+ .../oplus/osense/OsenseResEventClient.java    |    5 +
+ .../oplus/osense/eventinfo/OsenseConfig.java  |   70 ++
+ .../IOplusShoulderPressureManager.java        |  269 +++++
+ .../OplusShoulderPressureManager.java         |   99 ++
+ .../oplus/util/OplusTypeCastingHelper.java    |   21 +
+ .../src/com/oplus/view/IJankManager.java      |  216 ++++
+ oplus-fwk/src/com/oplus/view/JankManager.java |  140 +++
+ .../src/com/oplus/view/OplusEdrUtils.java     |  112 ++
+ oplus-fwk/src/com/oplus/view/OplusView.java   |   36 +
+ .../src/com/oplus/view/ViewRootManager.java   |   66 +
+ .../wrapper/graphics/HardwareRenderer.java    |   18 +
+ .../hardware/devicestate/DeviceState.java     |   19 +
+ .../devicestate/DeviceStateManager.java       |  124 ++
+ oplus-fwk/src/com/oplus/wrapper/os/Trace.java |   45 +
+ .../src/com/oplus/wrapper/os/UserHandle.java  |  101 ++
+ .../src/com/oplus/wrapper/view/View.java      |  164 +++
+ .../com/oplus/wrapper/view/ViewRootImpl.java  |  118 ++
+ .../content/res/OplusExtraConfiguration.java  |    2 +
+ 30 files changed, 3232 insertions(+), 7 deletions(-)
+ create mode 100644 oplus-fwk/src/android/hardware/display/OplusosDisplayManager.java
+ create mode 100644 oplus-fwk/src/com/oplus/app/IOplusProtectConnection.java
+ create mode 100644 oplus-fwk/src/com/oplus/app/IOplusTaskInfoChangeListener.java
+ create mode 100644 oplus-fwk/src/com/oplus/app/OplusTaskInfoChangeListener.java
+ create mode 100644 oplus-fwk/src/com/oplus/inner/hardware/camera2/impl/CameraMetadataNativeWrapper.java
+ create mode 100644 oplus-fwk/src/com/oplus/os/WaveformEffect.java
+ create mode 100644 oplus-fwk/src/com/oplus/osense/eventinfo/OsenseConfig.java
+ create mode 100644 oplus-fwk/src/com/oplus/shoulderpressure/IOplusShoulderPressureManager.java
+ create mode 100644 oplus-fwk/src/com/oplus/shoulderpressure/OplusShoulderPressureManager.java
+ create mode 100644 oplus-fwk/src/com/oplus/util/OplusTypeCastingHelper.java
+ create mode 100644 oplus-fwk/src/com/oplus/view/IJankManager.java
+ create mode 100644 oplus-fwk/src/com/oplus/view/JankManager.java
+ create mode 100644 oplus-fwk/src/com/oplus/view/OplusEdrUtils.java
+ create mode 100644 oplus-fwk/src/com/oplus/view/OplusView.java
+ create mode 100644 oplus-fwk/src/com/oplus/view/ViewRootManager.java
+ create mode 100644 oplus-fwk/src/com/oplus/wrapper/graphics/HardwareRenderer.java
+ create mode 100644 oplus-fwk/src/com/oplus/wrapper/hardware/devicestate/DeviceState.java
+ create mode 100644 oplus-fwk/src/com/oplus/wrapper/hardware/devicestate/DeviceStateManager.java
+ create mode 100644 oplus-fwk/src/com/oplus/wrapper/os/Trace.java
+ create mode 100644 oplus-fwk/src/com/oplus/wrapper/os/UserHandle.java
+ create mode 100644 oplus-fwk/src/com/oplus/wrapper/view/View.java
+ create mode 100644 oplus-fwk/src/com/oplus/wrapper/view/ViewRootImpl.java
+
+diff --git a/oplus-fwk/src/android/app/OplusActivityManager.java b/oplus-fwk/src/android/app/OplusActivityManager.java
+index 8dca7bf..46dfd48 100644
+--- a/oplus-fwk/src/android/app/OplusActivityManager.java
++++ b/oplus-fwk/src/android/app/OplusActivityManager.java
+@@ -95,4 +95,38 @@ public class OplusActivityManager extends OplusBaseActivityManager implements IO
+             reply.recycle();
+         }
+     }
++
++    public java.util.List<String> getGlobalPkgWhiteList(int type) throws android.os.RemoteException {
++        return new java.util.ArrayList<>();
++    }
++
++    public java.util.List<String> getStageProtectListFromPkg(String callerPkg, int type) throws android.os.RemoteException {
++        return new java.util.ArrayList<>();
++    }
++
++    public java.util.List<String> getStageProtectListFromPkgAsUser(String callerPkg, int type, int userId) throws android.os.RemoteException {
++        return new java.util.ArrayList<>();
++    }
++
++    public java.util.List<String> getStageProtectList(int type) throws android.os.RemoteException {
++        return new java.util.ArrayList<>();
++    }
++
++    public java.util.List<String> getStageProtectListAsUser(int type, int userId) throws android.os.RemoteException {
++        return new java.util.ArrayList<>();
++    }
++
++    public java.util.List<String> getGlobalProcessWhiteList() throws android.os.RemoteException {
++        return new java.util.ArrayList<>();
++    }
++
++    public void addStageProtectInfo(String callerPkg, String pkg, java.util.List<String> processList, String reason, long timeout, com.oplus.app.IOplusProtectConnection connection) throws android.os.RemoteException {
++    }
++
++    public void removeStageProtectInfo(String pkg, String callerPkg) throws android.os.RemoteException {
++    }
++
++    public boolean registerTaskInfoChangeListener(com.oplus.app.OplusTaskInfoChangeListener listener, int arg1, int arg2) {
++        return true;
++    }
+ }
+diff --git a/oplus-fwk/src/android/app/OplusWhiteListManager.java b/oplus-fwk/src/android/app/OplusWhiteListManager.java
+index 1110c02..8b6907f 100644
+--- a/oplus-fwk/src/android/app/OplusWhiteListManager.java
++++ b/oplus-fwk/src/android/app/OplusWhiteListManager.java
+@@ -1,18 +1,154 @@
+ package android.app;
+ 
+ import android.content.Context;
+-
++import android.os.RemoteException;
++import android.text.TextUtils;
++import android.util.Log;
++import com.android.internal.util.ArrayUtils;
++import com.oplus.app.IOplusProtectConnection;
+ import java.util.ArrayList;
++import java.util.List;
+ 
++/* loaded from: classes.dex */
+ public class OplusWhiteListManager {
++    private static final boolean DEBUG = false;
++    private static final long MAX_PROTECT_SELF_TIMEOUT = 10800000;
++    private static final long MIN_PROTECT_SELF_TIMEOUT = 60000;
++    private static final String REASON_LEGACY = "legacy_call";
++    private static final String TAG = "OplusWhiteListManager";
++    public static final int TYPE_DEEPSLEEP = 6;
++    public static final int TYPE_FILTER_ALL_SELF_PROTECT_PKG = 11;
++    public static final int TYPE_FILTER_CLEAR = 1;
++    public static final int TYPE_FILTER_PERMISSION = 2;
++    public static final int TYPE_FILTER_SELF_PROTECT_PKG = 12;
++    public static final int TYPE_FILTER_SELF_PROTECT_PROC = 13;
++    public static final int TYPE_FLOATWINDOW = 5;
++    public static final int TYPE_FLOATWINDOW_DEFAULT_GRANT_BUILDIN = 4;
++    public static final int TYPE_MIRAGE_DISPLAY = 101;
++    public static final int TYPE_NO_CLEAR_NOTIFICATION = 10;
++    public static final int TYPE_SCREENOFF_AUDIO_IN = 9;
++    public static final int TYPE_SCREENOFF_AUDIO_OUT = 7;
++    public static final int TYPE_SCREENOFF_POSSIBLE_AUDIO_OUT = 8;
++    public static final int TYPE_SPECIFIG_PKG_PROTECT = 3;
++    private Context mContext;
++    private OplusActivityManager mOplusActivityManager = new OplusActivityManager();
++
++    public OplusWhiteListManager(Context context) {
++        this.mContext = context;
++    }
++
++    public ArrayList<String> getGlobalWhiteList() {
++        return getGlobalWhiteList(1);
++    }
++
++    public ArrayList<String> getGlobalWhiteList(int type) {
++        ArrayList<String> resultList = new ArrayList<>();
++        try {
++            List<String> tempList = this.mOplusActivityManager.getGlobalPkgWhiteList(type);
++            if (!ArrayUtils.isEmpty(tempList)) {
++                resultList.addAll(tempList);
++            }
++        } catch (RemoteException e) {
++        }
++        return resultList;
++    }
++
++    public ArrayList<String> getStageProtectListFromPkg(String callerPkg, int type) {
++        ArrayList<String> resultList = new ArrayList<>();
++        try {
++            List<String> tempList = this.mOplusActivityManager.getStageProtectListFromPkg(callerPkg, type);
++            if (!ArrayUtils.isEmpty(tempList)) {
++                resultList.addAll(tempList);
++            }
++        } catch (RemoteException e) {
++        }
++        return resultList;
++    }
++
++    public List<String> getStageProtectListFromPkgAsUser(String callerPkg, int type, int userId) {
++        List<String> resultList = new ArrayList<>();
++        try {
++            List<String> tempList = this.mOplusActivityManager.getStageProtectListFromPkgAsUser(callerPkg, type, userId);
++            if (!ArrayUtils.isEmpty(tempList)) {
++                resultList.addAll(tempList);
++            }
++        } catch (RemoteException e) {
++        }
++        return resultList;
++    }
++
++    public List<String> getStageProtectList(int type) {
++        List<String> resultList = new ArrayList<>();
++        try {
++            List<String> tempList = this.mOplusActivityManager.getStageProtectList(type);
++            if (!ArrayUtils.isEmpty(tempList)) {
++                resultList.addAll(tempList);
++            }
++        } catch (RemoteException e) {
++        }
++        return resultList;
++    }
++
++    public List<String> getStageProtectListAsUser(int type, int userId) {
++        List<String> resultList = new ArrayList<>();
++        try {
++            List<String> tempList = this.mOplusActivityManager.getStageProtectListAsUser(type, userId);
++            if (!ArrayUtils.isEmpty(tempList)) {
++                resultList.addAll(tempList);
++            }
++        } catch (RemoteException e) {
++        }
++        return resultList;
++    }
+ 
+-    public OplusWhiteListManager(Context context) {}
++    public List<String> getGlobalProcessWhiteList() {
++        List<String> resultList = new ArrayList<>();
++        try {
++            List<String> tempList = this.mOplusActivityManager.getGlobalProcessWhiteList();
++            if (!ArrayUtils.isEmpty(tempList)) {
++                resultList.addAll(tempList);
++            }
++        } catch (RemoteException e) {
++        }
++        return resultList;
++    }
+ 
+-    public ArrayList<String> getStageProtectListFromPkg(String pkg, int type) {
+-        return new ArrayList<String>();
++    @Deprecated
++    public void addStageProtectInfo(String pkg, long timeout) {
++        addStageProtectInfo(pkg, REASON_LEGACY, timeout, null);
+     }
+ 
+-    public void addStageProtectInfo(String pkg, long timeout) {}
++    public void addStageProtectInfo(String pkg, String reason, long timeout, IOplusProtectConnection connection) {
++        addStageProtectInfo(pkg, null, reason, timeout, connection);
++    }
+ 
+-    public void removeStageProtectInfo(String pkg) {}
++    public void addStageProtectInfo(String pkg, List<String> processList, String reason, long timeout, IOplusProtectConnection connection) {
++        if (TextUtils.isEmpty(reason)) {
++            throw new IllegalArgumentException("reason is null or length equals 0");
++        }
++        if (timeout <= 0) {
++            if (REASON_LEGACY.equals(reason)) {
++                Log.w(TAG, "timeout <= 0 ");
++                return;
++            }
++            throw new IllegalArgumentException("timeout <= 0");
++        }
++        try {
++            this.mOplusActivityManager.addStageProtectInfo(this.mContext.getPackageName(), pkg, processList, reason, timeout, connection);
++        } catch (Exception e) {
++            Log.e(TAG, "Error adding stage protect ", e);
++        }
++    }
++
++    public void removeStageProtectInfo(String pkg) {
++        if (TextUtils.isEmpty(pkg)) {
++            Log.e(TAG, "can't add empty info to protect info");
++            return;
++        }
++        try {
++            this.mOplusActivityManager.removeStageProtectInfo(pkg, this.mContext.getPackageName());
++        } catch (Exception e) {
++            Log.e(TAG, "Error remove stage protect ", e);
++        }
++    }
+ }
+diff --git a/oplus-fwk/src/android/content/res/OplusBaseConfiguration.java b/oplus-fwk/src/android/content/res/OplusBaseConfiguration.java
+index 0d96089..f35e358 100644
+--- a/oplus-fwk/src/android/content/res/OplusBaseConfiguration.java
++++ b/oplus-fwk/src/android/content/res/OplusBaseConfiguration.java
+@@ -4,7 +4,7 @@ import oplus.content.res.OplusExtraConfiguration;
+ 
+ public abstract class OplusBaseConfiguration {
+     
+-    public OplusExtraConfiguration mOplusExtraConfiguration = null;
++    public OplusExtraConfiguration mOplusExtraConfiguration = new OplusExtraConfiguration();
+ 
+     public OplusExtraConfiguration getOplusExtraConfiguration() {
+         return mOplusExtraConfiguration;
+diff --git a/oplus-fwk/src/android/hardware/camera2/OplusCameraManager.java b/oplus-fwk/src/android/hardware/camera2/OplusCameraManager.java
+index 1dc7e1b..580ba96 100644
+--- a/oplus-fwk/src/android/hardware/camera2/OplusCameraManager.java
++++ b/oplus-fwk/src/android/hardware/camera2/OplusCameraManager.java
+@@ -4,6 +4,7 @@ import android.content.Context;
+ import android.hardware.camera2.CaptureRequest;
+ import android.hardware.camera2.IOplusCameraManager;
+ import android.hardware.camera2.impl.CameraMetadataNative;
++import android.hardware.camera2.marshal.MarshalRegistry;
+ import android.media.Image;
+ import android.media.ImageReader;
+ import android.os.Binder;
+@@ -16,6 +17,8 @@ import android.util.Log;
+ import java.lang.reflect.Field;
+ import java.lang.reflect.InvocationTargetException;
+ import java.lang.reflect.Method;
++import java.nio.ByteBuffer;
++import java.nio.ByteOrder;
+ 
+ /* loaded from: classes.dex */
+ public final class OplusCameraManager implements IOplusCameraManager {
+@@ -394,6 +397,34 @@ public final class OplusCameraManager implements IOplusCameraManager {
+         }
+     }
+ 
++    public static <T> T metaDataValueConvert(CaptureResult.Key<T> key, int i, byte[] bArr) {
++        final String TAG = "OplusCameraManagerExt";
++        android.util.Log.d(TAG, "metaDataValueConvert: key=" + (key != null ? key.getName() : "null")
++                + " nativeType=" + i + " data.length=" + (bArr != null ? bArr.length : 0));
++        try {
++            T result = (T) MarshalRegistry.getMarshaler(key.getNativeKey().getTypeReference(), i)
++                    .unmarshal(ByteBuffer.wrap(bArr).order(ByteOrder.nativeOrder()));
++            android.util.Log.d(TAG, "metaDataValueConvert OK key=" + key.getName() + " result=" + result);
++            return result;
++        } catch (Throwable t) {
++            android.util.Log.e(TAG, "metaDataValueConvert FAIL key=" + (key != null ? key.getName() : "null"), t);
++            throw t; // rethrow the original exception
++        }
++    }
++
++    public static int getMetadataTag(CaptureResult.Key key) {
++        final String TAG = "OplusCameraManagerExt";
++        android.util.Log.d(TAG, "getMetadataTag: key=" + (key != null ? key.getName() : "null"));
++        try {
++            int tag = key.getNativeKey().getTag();
++            android.util.Log.d(TAG, "getMetadataTag OK key=" + key.getName() + " tag=" + tag);
++            return tag;
++        } catch (Throwable t) {
++            android.util.Log.e(TAG, "getMetadataTag FAIL key=" + (key != null ? key.getName() : "null"), t);
++            throw t;
++        }
++    }
++
+     /* JADX INFO: Access modifiers changed from: private */
+     /* loaded from: classes.dex */
+     public static final class OplusCameraManagerGlobal implements IBinder.DeathRecipient {
+diff --git a/oplus-fwk/src/android/hardware/display/OplusosDisplayManager.java b/oplus-fwk/src/android/hardware/display/OplusosDisplayManager.java
+new file mode 100644
+index 0000000..da33542
+--- /dev/null
++++ b/oplus-fwk/src/android/hardware/display/OplusosDisplayManager.java
+@@ -0,0 +1,52 @@
++package android.hardware.display;
++
++import android.os.Bundle;
++import android.os.RemoteException;
++
++/* Stub implementation - OxygenOS display manager not available on AOSP/LineageOS */
++public class OplusosDisplayManager {
++    public static final String KEY_GAME_LOCK_SWITCH = "game_lock_switch";
++    public static final int MSG_GAME_SPACE = 0;
++
++    public boolean setStateChanged(int msgId, Bundle extraData) throws RemoteException {
++        return false;
++    }
++
++    public boolean setAutoBrightnessAdj(float value) {
++        return false;
++    }
++
++    public void connectWifiDisplay(String address) {}
++
++    public void startWifiDisplayScan() {}
++
++    public void stopWifiDisplayScan() {}
++
++    public void setTemporaryAutoBrightnessAdjustment(float adjustment) {}
++
++    public void setTemporaryBrightness(int displayId, float brightness) {}
++
++    public void setDisplayPowerMode(int mode) {}
++
++    public void setGameColorSpaceData(String pkgName, int status, int mode, String data) {}
++
++    public boolean isGameColorSpaceBlackList(String pkgName) {
++        return false;
++    }
++
++    public boolean isGameSceneBeautifyWhiteList(String pkgName) {
++        return false;
++    }
++
++    public boolean isSupportLiveBrightness() {
++        return false;
++    }
++
++    public boolean isSupportCameraBrightnessCurve() {
++        return false;
++    }
++
++    public boolean setCameraBrightnessCurveEnabled(boolean enabled) {
++        return false;
++    }
++}
+diff --git a/oplus-fwk/src/android/view/OplusWindowManager.java b/oplus-fwk/src/android/view/OplusWindowManager.java
+index 1f57da6..6d2b0be 100644
+--- a/oplus-fwk/src/android/view/OplusWindowManager.java
++++ b/oplus-fwk/src/android/view/OplusWindowManager.java
+@@ -5,4 +5,5 @@ public class OplusWindowManager {
+     public OplusWindowManager() {}
+ 
+     public void requestKeyguard(String command) {}
++    public boolean setPreferredDisplayMode(int mode) { return false; }
+ }
+diff --git a/oplus-fwk/src/com/oplus/app/IOplusProtectConnection.java b/oplus-fwk/src/com/oplus/app/IOplusProtectConnection.java
+new file mode 100644
+index 0000000..2aca8d6
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/app/IOplusProtectConnection.java
+@@ -0,0 +1,161 @@
++package com.oplus.app;
++
++import android.os.Binder;
++import android.os.IBinder;
++import android.os.IInterface;
++import android.os.Parcel;
++import android.os.RemoteException;
++
++/* loaded from: classes.dex */
++public interface IOplusProtectConnection extends IInterface {
++    public static final String DESCRIPTOR = "com.oplus.app.IOplusProtectConnection";
++
++    void onError(int i) throws RemoteException;
++
++    void onSuccess() throws RemoteException;
++
++    void onTimeout() throws RemoteException;
++
++    public static class Default implements IOplusProtectConnection {
++        @Override // com.oplus.app.IOplusProtectConnection
++        public void onSuccess() throws RemoteException {
++        }
++
++        @Override // com.oplus.app.IOplusProtectConnection
++        public void onError(int errorCode) throws RemoteException {
++        }
++
++        @Override // com.oplus.app.IOplusProtectConnection
++        public void onTimeout() throws RemoteException {
++        }
++
++        @Override // android.os.IInterface
++        public IBinder asBinder() {
++            return null;
++        }
++    }
++
++    public static abstract class Stub extends Binder implements IOplusProtectConnection {
++        static final int TRANSACTION_onError = 2;
++        static final int TRANSACTION_onSuccess = 1;
++        static final int TRANSACTION_onTimeout = 3;
++
++        public Stub() {
++            attachInterface(this, IOplusProtectConnection.DESCRIPTOR);
++        }
++
++        public static IOplusProtectConnection asInterface(IBinder obj) {
++            if (obj == null) {
++                return null;
++            }
++            IInterface iin = obj.queryLocalInterface(IOplusProtectConnection.DESCRIPTOR);
++            if (iin != null && (iin instanceof IOplusProtectConnection)) {
++                return (IOplusProtectConnection) iin;
++            }
++            return new Proxy(obj);
++        }
++
++        @Override // android.os.IInterface
++        public IBinder asBinder() {
++            return this;
++        }
++
++        public static String getDefaultTransactionName(int transactionCode) {
++            switch (transactionCode) {
++                case 1:
++                    return "onSuccess";
++                case 2:
++                    return "onError";
++                case 3:
++                    return "onTimeout";
++                default:
++                    return null;
++            }
++        }
++
++        public String getTransactionName(int transactionCode) {
++            return getDefaultTransactionName(transactionCode);
++        }
++
++        @Override // android.os.Binder
++        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
++            if (code >= 1 && code <= 16777215) {
++                data.enforceInterface(IOplusProtectConnection.DESCRIPTOR);
++            }
++            if (code == 1598968902) {
++                reply.writeString(IOplusProtectConnection.DESCRIPTOR);
++                return true;
++            }
++            switch (code) {
++                case 1:
++                    onSuccess();
++                    return true;
++                case 2:
++                    int _arg0 = data.readInt();
++                    data.enforceNoDataAvail();
++                    onError(_arg0);
++                    return true;
++                case 3:
++                    onTimeout();
++                    return true;
++                default:
++                    return super.onTransact(code, data, reply, flags);
++            }
++        }
++
++        private static class Proxy implements IOplusProtectConnection {
++            private IBinder mRemote;
++
++            Proxy(IBinder remote) {
++                this.mRemote = remote;
++            }
++
++            @Override // android.os.IInterface
++            public IBinder asBinder() {
++                return this.mRemote;
++            }
++
++            public String getInterfaceDescriptor() {
++                return IOplusProtectConnection.DESCRIPTOR;
++            }
++
++            @Override // com.oplus.app.IOplusProtectConnection
++            public void onSuccess() throws RemoteException {
++                Parcel _data = Parcel.obtain(asBinder());
++                try {
++                    _data.writeInterfaceToken(IOplusProtectConnection.DESCRIPTOR);
++                    this.mRemote.transact(1, _data, null, 1);
++                } finally {
++                    _data.recycle();
++                }
++            }
++
++            @Override // com.oplus.app.IOplusProtectConnection
++            public void onError(int errorCode) throws RemoteException {
++                Parcel _data = Parcel.obtain(asBinder());
++                try {
++                    _data.writeInterfaceToken(IOplusProtectConnection.DESCRIPTOR);
++                    _data.writeInt(errorCode);
++                    this.mRemote.transact(2, _data, null, 1);
++                } finally {
++                    _data.recycle();
++                }
++            }
++
++            @Override // com.oplus.app.IOplusProtectConnection
++            public void onTimeout() throws RemoteException {
++                Parcel _data = Parcel.obtain(asBinder());
++                try {
++                    _data.writeInterfaceToken(IOplusProtectConnection.DESCRIPTOR);
++                    this.mRemote.transact(3, _data, null, 1);
++                } finally {
++                    _data.recycle();
++                }
++            }
++        }
++
++        public int getMaxTransactionId() {
++            return 2;
++        }
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/app/IOplusTaskInfoChangeListener.java b/oplus-fwk/src/com/oplus/app/IOplusTaskInfoChangeListener.java
+new file mode 100644
+index 0000000..163b7c2
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/app/IOplusTaskInfoChangeListener.java
+@@ -0,0 +1,17 @@
++package com.oplus.app;
++
++import android.os.Binder;
++import android.os.IBinder;
++import android.os.IInterface;
++
++public interface IOplusTaskInfoChangeListener extends IInterface {
++    public static abstract class Stub extends Binder implements IOplusTaskInfoChangeListener {
++        public Stub() {
++            this.attachInterface(this, "com.oplus.app.IOplusTaskInfoChangeListener");
++        }
++        @Override
++        public IBinder asBinder() {
++            return this;
++        }
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/app/OplusTaskInfoChangeListener.java b/oplus-fwk/src/com/oplus/app/OplusTaskInfoChangeListener.java
+new file mode 100644
+index 0000000..b403a41
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/app/OplusTaskInfoChangeListener.java
+@@ -0,0 +1,9 @@
++package com.oplus.app;
++
++import android.app.ActivityManager;
++import java.util.List;
++
++public class OplusTaskInfoChangeListener extends IOplusTaskInfoChangeListener.Stub {
++    public void onVisibleTasksInfoChange(List<ActivityManager.RunningTaskInfo> tasks) {
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/content/OplusFeatureConfigManager.java b/oplus-fwk/src/com/oplus/content/OplusFeatureConfigManager.java
+index 8580fda..8cc5380 100644
+--- a/oplus-fwk/src/com/oplus/content/OplusFeatureConfigManager.java
++++ b/oplus-fwk/src/com/oplus/content/OplusFeatureConfigManager.java
+@@ -31,7 +31,25 @@ public class OplusFeatureConfigManager {
+         return !TextUtils.isEmpty(SystemProperties.get("ro.oplus.version.base"));
+     }
+ 
++    public boolean registerFeatureActionObserver(OnFeatureActionObserver observer) {
++        return false;
++    }
++
++    public boolean unregisterFeatureActionObserver(OnFeatureActionObserver observer) {
++        return false;
++    }
++
+     public interface OnFeatureObserver {
+         default void onFeatureUpdate(List<String> features) {}
+     }
++
++    public interface OnFeatureActionObserver {
++        default void onFeaturesActionUpdate(String action, String actionValue, int featureID) {}
++    }
++
++    public interface OnFeatureMapObserver {
++        default void onFeatureUpdate(List<String> list, int featureID) {}
++    }
++
++
+ }
+diff --git a/oplus-fwk/src/com/oplus/inner/hardware/camera2/impl/CameraMetadataNativeWrapper.java b/oplus-fwk/src/com/oplus/inner/hardware/camera2/impl/CameraMetadataNativeWrapper.java
+new file mode 100644
+index 0000000..7d97cb1
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/inner/hardware/camera2/impl/CameraMetadataNativeWrapper.java
+@@ -0,0 +1,76 @@
++package com.oplus.inner.hardware.camera2.impl;
++
++import android.hardware.camera2.CameraCharacteristics;
++import android.hardware.camera2.CaptureRequest;
++import android.hardware.camera2.CaptureResult;
++import android.util.Log;
++import java.lang.reflect.Field;
++import java.lang.reflect.Method;
++
++public class CameraMetadataNativeWrapper {
++    private static final String TAG = "CameraMetadataNativeWrapper";
++
++    public CameraMetadataNativeWrapper() {
++    }
++
++    public static long getMetadataPtr(Object obj) {
++        if (obj == null) return 0L;
++
++        try {
++            Object nativeMeta = obj;
++
++            // 1. Unwrap CameraCharacteristics
++            if (obj instanceof CameraCharacteristics) {
++                try {
++                    Method getNativeCopy = CameraCharacteristics.class.getDeclaredMethod("getNativeCopy");
++                    getNativeCopy.setAccessible(true);
++                    nativeMeta = getNativeCopy.invoke(obj);
++                } catch (Exception e) {
++                    Field f = CameraCharacteristics.class.getDeclaredField("mProperties");
++                    f.setAccessible(true);
++                    nativeMeta = f.get(obj);
++                }
++            }
++            // 2. Unwrap CaptureRequest
++            else if (obj instanceof CaptureRequest) {
++                try {
++                    Method getNativeCopy = CaptureRequest.class.getDeclaredMethod("getNativeCopy");
++                    getNativeCopy.setAccessible(true);
++                    nativeMeta = getNativeCopy.invoke(obj);
++                } catch (Exception e) {
++                    Field f = CaptureRequest.class.getDeclaredField("mLogicalCameraSettings");
++                    f.setAccessible(true);
++                    nativeMeta = f.get(obj);
++                }
++            }
++            // 3. Unwrap CaptureResult
++            else if (obj instanceof CaptureResult) {
++                try {
++                    Method getNativeCopy = CaptureResult.class.getDeclaredMethod("getNativeCopy");
++                    getNativeCopy.setAccessible(true);
++                    nativeMeta = getNativeCopy.invoke(obj);
++                } catch (Exception e) {
++                    Field f = CaptureResult.class.getDeclaredField("mResults");
++                    f.setAccessible(true);
++                    nativeMeta = f.get(obj);
++                }
++            }
++
++            if (nativeMeta == null) {
++                Log.e(TAG, "Unwrapped metadata is null!");
++                return 0L;
++            }
++
++            // 4. Extract the C++ pointer from the unwrapped CameraMetadataNative object
++            Field ptrField = nativeMeta.getClass().getDeclaredField("mMetadataPtr");
++            ptrField.setAccessible(true);
++            long ptr = ptrField.getLong(nativeMeta);
++
++            return ptr;
++
++        } catch (Exception e) {
++            Log.e(TAG, "Failed to get ptr from " + obj.getClass().getName(), e);
++            return 0L;
++        }
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/os/WaveformEffect.java b/oplus-fwk/src/com/oplus/os/WaveformEffect.java
+new file mode 100644
+index 0000000..4fe4366
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/os/WaveformEffect.java
+@@ -0,0 +1,1065 @@
++package com.oplus.os;
++
++import android.os.IVibratorManagerService;
++import android.os.Parcel;
++import android.os.Parcelable;
++import android.os.RemoteException;
++import android.os.ServiceManager;
++import android.util.Slog;
++import java.util.Objects;
++
++/* loaded from: classes.dex */
++public final class WaveformEffect implements Parcelable {
++    public static final Parcelable.Creator<WaveformEffect> CREATOR = new Parcelable.Creator<WaveformEffect>() { // from class: com.oplus.os.WaveformEffect.1
++        /* JADX WARN: Can't rename method to resolve collision */
++        @Override // android.os.Parcelable.Creator
++        public WaveformEffect createFromParcel(Parcel p) {
++            return new WaveformEffect(p);
++        }
++
++        /* JADX WARN: Can't rename method to resolve collision */
++        @Override // android.os.Parcelable.Creator
++        public WaveformEffect[] newArray(int size) {
++            return new WaveformEffect[size];
++        }
++    };
++    public static final int EFFECT_AFGAME_DOUBLE_KILL = 76;
++    public static final int EFFECT_AFGAME_NORMAL_KILL = 75;
++    public static final int EFFECT_AFGAME_PANTA_KILL = 79;
++    public static final int EFFECT_AFGAME_TRIPLE_KILL = 77;
++    public static final int EFFECT_AFGAME_ULTRA_KILL = 78;
++    public static final int EFFECT_ALARM_ALARM_CLOCK = 238;
++    public static final int EFFECT_ALARM_BEEP = 239;
++    public static final int EFFECT_ALARM_BREEZE = 240;
++    public static final int EFFECT_ALARM_CLOUDSCAPE = 341;
++    public static final int EFFECT_ALARM_DAWN = 241;
++    public static final int EFFECT_ALARM_DREAM = 242;
++    public static final int EFFECT_ALARM_FLUTTERING = 243;
++    public static final int EFFECT_ALARM_FLYER = 244;
++    public static final int EFFECT_ALARM_GOODENERGY = 342;
++    public static final int EFFECT_ALARM_INTERESTING = 245;
++    public static final int EFFECT_ALARM_IN_GAME_ALARM = 364;
++    public static final int EFFECT_ALARM_LEISURELY = 246;
++    public static final int EFFECT_ALARM_MEMORY = 247;
++    public static final int EFFECT_ALARM_PACMAN = 317;
++    public static final int EFFECT_ALARM_RELIEVED = 248;
++    public static final int EFFECT_ALARM_RIPPLE = 249;
++    public static final int EFFECT_ALARM_SLOWLY = 250;
++    public static final int EFFECT_ALARM_SPRING = 251;
++    public static final int EFFECT_ALARM_STARS = 252;
++    public static final int EFFECT_ALARM_SURGING = 253;
++    public static final int EFFECT_ALARM_TACTFULLY = 254;
++    public static final int EFFECT_ALARM_THE_WIND = 255;
++    public static final int EFFECT_ALARM_WAKE_UP_SAMURAI = 363;
++    public static final int EFFECT_ALARM_WALKING_IN_THE_RAIN = 256;
++    public static final int EFFECT_ALARM_WEATHER_CLOUDY = 145;
++    public static final int EFFECT_ALARM_WEATHER_DEFAULT = 147;
++    public static final int EFFECT_ALARM_WEATHER_RAIN = 151;
++    public static final int EFFECT_ALARM_WEATHER_SMOG = 149;
++    public static final int EFFECT_ALARM_WEATHER_SNOW = 150;
++    public static final int EFFECT_ALARM_WEATHER_SUNNY = 148;
++    public static final int EFFECT_ALARM_WEATHER_THUNDERSTORM = 146;
++    public static final int EFFECT_ALARM_WEATHER_WIND = 144;
++    public static final int EFFECT_ALERTSLIDER_DOWN = 308;
++    public static final int EFFECT_ARTIST_ALARM = 313;
++    public static final int EFFECT_ARTIST_NOTIFICATION = 310;
++    public static final int EFFECT_ARTIST_RINGTONE = 311;
++    public static final int EFFECT_ARTIST_TEXT = 312;
++    public static final int EFFECT_CANYON_CALL = 351;
++    public static final int EFFECT_CHASE = 269;
++    public static final int EFFECT_CLEAR_NOTIFICATION_HISTORY = 471;
++    public static final int EFFECT_CLIMBER = 268;
++    public static final int EFFECT_CUSTOMIZED_ATTACH_TO_MIDDLE = 73;
++    public static final int EFFECT_CUSTOMIZED_BREATHE_SPREAD_OUT = 74;
++    public static final int EFFECT_CUSTOMIZED_CONFLICT = 52;
++    public static final int EFFECT_CUSTOMIZED_CONVERGE = 51;
++    public static final int EFFECT_CUSTOMIZED_LONG_VIBRATE = 70;
++    public static final int EFFECT_CUSTOMIZED_RUSH_LEFT_TO_RIGHT = 53;
++    public static final int EFFECT_CUSTOMIZED_SPREAD_OUT = 50;
++    public static final int EFFECT_CUSTOMIZED_STRONG_GRANULAR = 69;
++    public static final int EFFECT_CUSTOMIZED_STRONG_ONE_SENCOND = 72;
++    public static final int EFFECT_CUSTOMIZED_STRONG_POINTFOUR_SENCOND = 71;
++    public static final int EFFECT_CUSTOMIZED_THREE_DIMENSION_TOUCH = 49;
++    public static final int EFFECT_CUSTOMIZED_WEAK_GRANULAR = 68;
++    private static final int EFFECT_DURATION_ENROLL_FINGERPRINT_SUCCESS = 242;
++    private static final int EFFECT_DURATION_LOCKSCREEN_FEEDBACK = 115;
++    private static final int EFFECT_DURATION_MESSAGE_HEARTBEAT = 470;
++    private static final int EFFECT_DURATION_MESSAGE_RAPID = 430;
++    private static final int EFFECT_DURATION_MESSAGE_REMIND = 330;
++    private static final int EFFECT_DURATION_MESSAGE_STREAK = 390;
++    private static final int EFFECT_DURATION_MESSAGE_SYMPHONIC = 580;
++    private static final int EFFECT_DURATION_SCREENSHOT_FEEDBACK = 147;
++    private static final int EFFECT_DURATION_THREE_STAGE_KEY = 220;
++    public static final int EFFECT_EMULATION_KEYBOARD_DOWN = 302;
++    public static final int EFFECT_EMULATION_KEYBOARD_UP = 303;
++    public static final int EFFECT_ENROLL_FINGERPRINT_SUCCESS = 407;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_1 = 476;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_2 = 480;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_ATTACK = 477;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_ATTACK2 = 483;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_CONTINUOUS_STEPS = 486;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_CRISP = 473;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_CRISP_LONG = 485;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_LONG = 478;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_MICROWAVE_RIPPLES = 484;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_ORDERLY = 488;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_ROUNDABOUT = 479;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_SPORT = 481;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_STEPS = 474;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_STRONG = 489;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_STRONG_ATTACK = 482;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_STRONG_RHYTHM = 487;
++    public static final int EFFECT_GAME_CUSTOM_VIBRATION_WEAK = 475;
++    public static final int EFFECT_ID_THREE_STAGE_KEY = 430;
++    public static final int EFFECT_INPUT_METHOD_LONG_PRESS = 490;
++    public static final int EFFECT_INVALID = -1;
++    public static final int EFFECT_LOCKSCREEN_FEEDBACK = 406;
++    private static final int EFFECT_MESSAGE_HEARTBEAT = 398;
++    private static final int EFFECT_MESSAGE_RAPID = 400;
++    private static final int EFFECT_MESSAGE_REMIND = 399;
++    private static final int EFFECT_MESSAGE_STREAK = 397;
++    private static final int EFFECT_MESSAGE_SYMPHONIC = 396;
++    public static final int EFFECT_MODERATE_SHORT_VIBRATE_ONCE = 2;
++    public static final int EFFECT_MODERATE_SHORT_VIBRATE_TRIPLE = 3;
++    public static final int EFFECT_MODERATE_SHORT_VIBRATE_TWICE = 3;
++    public static final int EFFECT_MYSTIC_STORE = 352;
++    public static final int EFFECT_NOTIFICATION_ALLAY = 214;
++    public static final int EFFECT_NOTIFICATION_ALLUSION = 215;
++    public static final int EFFECT_NOTIFICATION_AMIABLE = 216;
++    public static final int EFFECT_NOTIFICATION_AUDITION = 366;
++    public static final int EFFECT_NOTIFICATION_BEATING = 334;
++    private static final int EFFECT_NOTIFICATION_BEATING_2 = 390;
++    public static final int EFFECT_NOTIFICATION_BLARE = 217;
++    public static final int EFFECT_NOTIFICATION_BLINK = 343;
++    public static final int EFFECT_NOTIFICATION_BLISSFUL = 218;
++    public static final int EFFECT_NOTIFICATION_BLOCK = 338;
++    private static final int EFFECT_NOTIFICATION_BLOCK_2 = 394;
++    public static final int EFFECT_NOTIFICATION_BOWLBELL = 330;
++    private static final int EFFECT_NOTIFICATION_BOWLBELL_2 = 386;
++    public static final int EFFECT_NOTIFICATION_BRISK = 219;
++    public static final int EFFECT_NOTIFICATION_BUBBLE = 220;
++    public static final int EFFECT_NOTIFICATION_CHEERFUL = 221;
++    public static final int EFFECT_NOTIFICATION_CIRCLE = 337;
++    public static final int EFFECT_NOTIFICATION_CLEAR = 222;
++    public static final int EFFECT_NOTIFICATION_COMELY = 223;
++    public static final int EFFECT_NOTIFICATION_COZY = 224;
++    public static final int EFFECT_NOTIFICATION_CRYSTALCLEAR = 129;
++    private static final int EFFECT_NOTIFICATION_CRYSTALCLEAR_2 = 371;
++    public static final int EFFECT_NOTIFICATION_DING = 225;
++    public static final int EFFECT_NOTIFICATION_EFFERVESCE = 226;
++    public static final int EFFECT_NOTIFICATION_ELEGANT = 227;
++    public static final int EFFECT_NOTIFICATION_EMERGE = 131;
++    private static final int EFFECT_NOTIFICATION_EMERGE_2 = 373;
++    public static final int EFFECT_NOTIFICATION_FREE = 228;
++    public static final int EFFECT_NOTIFICATION_FUN = 139;
++    private static final int EFFECT_NOTIFICATION_FUN_2 = 381;
++    public static final int EFFECT_NOTIFICATION_GRANULES = 143;
++    private static final int EFFECT_NOTIFICATION_GRANULES_2 = 385;
++    public static final int EFFECT_NOTIFICATION_HALLUCINATION = 229;
++    public static final int EFFECT_NOTIFICATION_HARP = 133;
++    private static final int EFFECT_NOTIFICATION_HARP_2 = 375;
++    public static final int EFFECT_NOTIFICATION_HEARTBEAT = 6;
++    public static final int EFFECT_NOTIFICATION_HEY = 332;
++    private static final int EFFECT_NOTIFICATION_HEY_2 = 388;
++    public static final int EFFECT_NOTIFICATION_INBOUND = 230;
++    public static final int EFFECT_NOTIFICATION_INGENIOUS = 142;
++    private static final int EFFECT_NOTIFICATION_INGENIOUS_2 = 384;
++    public static final int EFFECT_NOTIFICATION_INSTANT = 138;
++    private static final int EFFECT_NOTIFICATION_INSTANT_2 = 380;
++    public static final int EFFECT_NOTIFICATION_IN_GAME_SMS = 365;
++    private static final int EFFECT_NOTIFICATION_JINGLE_2 = 369;
++    public static final int EFFECT_NOTIFICATION_JOY = 136;
++    private static final int EFFECT_NOTIFICATION_JOY_2 = 378;
++    public static final int EFFECT_NOTIFICATION_LIGHT = 231;
++    public static final int EFFECT_NOTIFICATION_MEET = 232;
++    public static final int EFFECT_NOTIFICATION_NAIVETY = 233;
++    public static final int EFFECT_NOTIFICATION_NEWS = 333;
++    private static final int EFFECT_NOTIFICATION_NEWS_2 = 389;
++    public static final int EFFECT_NOTIFICATION_ONEPLUS_TWINKLE = 237;
++    public static final int EFFECT_NOTIFICATION_OVERTONE = 134;
++    private static final int EFFECT_NOTIFICATION_OVERTONE_2 = 376;
++    public static final int EFFECT_NOTIFICATION_PACMAN = 316;
++    public static final int EFFECT_NOTIFICATION_PERCUSSION = 135;
++    private static final int EFFECT_NOTIFICATION_PERCUSSION_2 = 377;
++    public static final int EFFECT_NOTIFICATION_QUICKLY = 234;
++    public static final int EFFECT_NOTIFICATION_RAPID = 8;
++    public static final int EFFECT_NOTIFICATION_RECEIVE = 140;
++    private static final int EFFECT_NOTIFICATION_RECEIVE_2 = 382;
++    public static final int EFFECT_NOTIFICATION_REMIND = 7;
++    public static final int EFFECT_NOTIFICATION_RHYTHM = 235;
++    public static final int EFFECT_NOTIFICATION_RIPPLES = 132;
++    private static final int EFFECT_NOTIFICATION_RIPPLES_2 = 374;
++    public static final int EFFECT_NOTIFICATION_RISE = 331;
++    private static final int EFFECT_NOTIFICATION_RISE_2 = 387;
++    private static final int EFFECT_NOTIFICATION_ROUND_2 = 393;
++    public static final int EFFECT_NOTIFICATION_SHORT = 335;
++    private static final int EFFECT_NOTIFICATION_SHORT_2 = 391;
++    public static final int EFFECT_NOTIFICATION_SIMPLE = 128;
++    private static final int EFFECT_NOTIFICATION_SIMPLE_2 = 370;
++    public static final int EFFECT_NOTIFICATION_SPLASH = 141;
++    private static final int EFFECT_NOTIFICATION_SPLASH_2 = 383;
++    public static final int EFFECT_NOTIFICATION_STREAK = 5;
++    public static final int EFFECT_NOTIFICATION_SURPRISE = 236;
++    public static final int EFFECT_NOTIFICATION_SYMPHONIC = 4;
++    public static final int EFFECT_NOTIFICATION_TOP = 336;
++    private static final int EFFECT_NOTIFICATION_TOP_2 = 392;
++    public static final int EFFECT_NOTIFICATION_TUNES = 130;
++    private static final int EFFECT_NOTIFICATION_TUNES_2 = 372;
++    public static final int EFFECT_NOTIFICATION_TWINKLE = 137;
++    private static final int EFFECT_NOTIFICATION_TWINKLE_2 = 379;
++    public static final int EFFECT_NOTIFICATION_WHOOPDOOP = 344;
++    public static final int EFFECT_NOTIFICATION_ZANZA = 339;
++    private static final int EFFECT_NOTIFICATION_ZANZA_2 = 395;
++    public static final int EFFECT_ONE_KEY_CLEAR_RECENT_TASK = 472;
++    private static final int EFFECT_OPLUS_RINGTONE_BATHEEARTH = 441;
++    private static final int EFFECT_OPLUS_RINGTONE_BLOW = 460;
++    private static final int EFFECT_OPLUS_RINGTONE_CLOUDS = 453;
++    private static final int EFFECT_OPLUS_RINGTONE_CRYSTALCLEAR = 464;
++    private static final int EFFECT_OPLUS_RINGTONE_DEW = 466;
++    private static final int EFFECT_OPLUS_RINGTONE_DISTANT = 436;
++    private static final int EFFECT_OPLUS_RINGTONE_DRAGONFLY = 457;
++    private static final int EFFECT_OPLUS_RINGTONE_DROPWATER = 458;
++    private static final int EFFECT_OPLUS_RINGTONE_ELEGANTQUIET = 444;
++    private static final int EFFECT_OPLUS_RINGTONE_FLUCTUATION = 459;
++    private static final int EFFECT_OPLUS_RINGTONE_FROST = 468;
++    private static final int EFFECT_OPLUS_RINGTONE_FULLMOON = 452;
++    private static final int EFFECT_OPLUS_RINGTONE_HAUNTING = 456;
++    private static final int EFFECT_OPLUS_RINGTONE_ICESNOW = 447;
++    private static final int EFFECT_OPLUS_RINGTONE_INSECTS = 465;
++    private static final int EFFECT_OPLUS_RINGTONE_JUNGLEMORNING = 442;
++    private static final int EFFECT_OPLUS_RINGTONE_LEAVESLIGHT = 461;
++    private static final int EFFECT_OPLUS_RINGTONE_MEDITATE = 435;
++    private static final int EFFECT_OPLUS_RINGTONE_MOONLOTUS = 438;
++    private static final int EFFECT_OPLUS_RINGTONE_NIGHTSKY = 431;
++    private static final int EFFECT_OPLUS_RINGTONE_POND = 437;
++    private static final int EFFECT_OPLUS_RINGTONE_RAINDROP = 470;
++    private static final int EFFECT_OPLUS_RINGTONE_RAINEVERYTHING = 450;
++    private static final int EFFECT_OPLUS_RINGTONE_RAINFOREST = 449;
++    private static final int EFFECT_OPLUS_RINGTONE_RAINSPLASH = 469;
++    private static final int EFFECT_OPLUS_RINGTONE_RIPPLINGWATER = 439;
++    private static final int EFFECT_OPLUS_RINGTONE_SHIMMER = 440;
++    private static final int EFFECT_OPLUS_RINGTONE_SHINE = 467;
++    private static final int EFFECT_OPLUS_RINGTONE_SILVER = 443;
++    private static final int EFFECT_OPLUS_RINGTONE_SNOWFLAKE = 463;
++    private static final int EFFECT_OPLUS_RINGTONE_STARACROSS = 451;
++    private static final int EFFECT_OPLUS_RINGTONE_STILL = 455;
++    private static final int EFFECT_OPLUS_RINGTONE_SUMMERBEACH = 445;
++    private static final int EFFECT_OPLUS_RINGTONE_SUMMERNIGHT = 446;
++    private static final int EFFECT_OPLUS_RINGTONE_THESTARS = 432;
++    private static final int EFFECT_OPLUS_RINGTONE_THESUNRISE = 433;
++    private static final int EFFECT_OPLUS_RINGTONE_THESUNSET = 434;
++    private static final int EFFECT_OPLUS_RINGTONE_WARMSUN = 462;
++    private static final int EFFECT_OPLUS_RINGTONE_WINTERSNOW = 448;
++    private static final int EFFECT_OPLUS_RINGTONE_WONDERLAND = 454;
++    public static final int EFFECT_OTHER_BIG_SCALE = 9;
++    public static final int EFFECT_OTHER_BREATH_SIMULATION = 165;
++    public static final int EFFECT_OTHER_BULB = 285;
++    public static final int EFFECT_OTHER_CHARGING_SIMULATION = 166;
++    public static final int EFFECT_OTHER_CLOSE = 274;
++    public static final int EFFECT_OTHER_COMPATIBLE_1 = 278;
++    public static final int EFFECT_OTHER_COMPATIBLE_2 = 279;
++    public static final int EFFECT_OTHER_COMPLETE = 284;
++    public static final int EFFECT_OTHER_ELASTICITY = 286;
++    public static final int EFFECT_OTHER_FINGERPRINT_CORRECT_EFFECT = 156;
++    public static final int EFFECT_OTHER_HALF_LAP = 275;
++    public static final int EFFECT_OTHER_KEYBOARD_MEDIUM = 158;
++    public static final int EFFECT_OTHER_KEYBOARD_STRONG = 159;
++    public static final int EFFECT_OTHER_KEYBOARD_WEAK = 157;
++    public static final int EFFECT_OTHER_SMALL_SCALE = 10;
++    public static final int EFFECT_OTHER_STRENGTH_LEVEL_BAR_EDGE = 154;
++    public static final int EFFECT_OTHER_STYLESWITCH = 280;
++    public static final int EFFECT_OTHER_STYLESWITCH_SOFT = 287;
++    public static final int EFFECT_OTHER_SUSPENDBUTTON_BOTTOMOUT = 282;
++    public static final int EFFECT_OTHER_SUSPENDBUTTON_MENU = 283;
++    public static final int EFFECT_OTHER_THREEFINGERS_LONG = 270;
++    public static final int EFFECT_OTHER_THREEFINGERS_SCREENSHOT = 272;
++    public static final int EFFECT_OTHER_THREEFINGERS_UP = 271;
++    public static final int EFFECT_OTHER_TWOFINGERS_DOWN = 276;
++    public static final int EFFECT_OTHER_TWOFINGERS_LONG = 277;
++    public static final int EFFECT_OTHER_UNFOLD = 273;
++    public static final int EFFECT_OTHER_VOICE_ASSISTANT = 167;
++    public static final int EFFECT_OTHER_VOICE_LEVEL_BAR_EDGE = 153;
++    public static final int EFFECT_OTHER_WATERRIPPLE = 281;
++    public static final int EFFECT_PUBG_RIFLE = 11;
++    public static final int EFFECT_PUBG_SHORT_GUN = 12;
++    public static final int EFFECT_PUBG_SNIPER = 13;
++    public static final int EFFECT_RAZER_CLICKY_PRESS = 288;
++    public static final int EFFECT_RAZER_LINEAR_PRESS = 289;
++    public static final int EFFECT_RECENT_TASK_FEEDBACK = 367;
++    public static final int EFFECT_RINGTONE_ALACRITY = 180;
++    public static final int EFFECT_RINGTONE_AMENITY = 181;
++    public static final int EFFECT_RINGTONE_BLISS = 106;
++    public static final int EFFECT_RINGTONE_BLUES = 182;
++    public static final int EFFECT_RINGTONE_BOUNCE = 183;
++    public static final int EFFECT_RINGTONE_CALM = 100;
++    public static final int EFFECT_RINGTONE_CHILDHOOD = 121;
++    public static final int EFFECT_RINGTONE_CLASSIC = 108;
++    public static final int EFFECT_RINGTONE_CLOUD = 185;
++    public static final int EFFECT_RINGTONE_COMMUTE = 123;
++    public static final int EFFECT_RINGTONE_CYCLOTRON = 186;
++    public static final int EFFECT_RINGTONE_DANCE = 110;
++    public static final int EFFECT_RINGTONE_DAZZLE = 119;
++    public static final int EFFECT_RINGTONE_DELIGHT = 107;
++    public static final int EFFECT_RINGTONE_DISTINCT = 187;
++    public static final int EFFECT_RINGTONE_DREAM = 103;
++    public static final int EFFECT_RINGTONE_DREAMJAZZ = 321;
++    public static final int EFFECT_RINGTONE_DYNAMIC = 188;
++    public static final int EFFECT_RINGTONE_EAGER = 209;
++    public static final int EFFECT_RINGTONE_EASTERN_TRANQUILITY = 329;
++    public static final int EFFECT_RINGTONE_EBULLITION = 210;
++    public static final int EFFECT_RINGTONE_ECHO = 189;
++    public static final int EFFECT_RINGTONE_ECLUB = 323;
++    public static final int EFFECT_RINGTONE_EXPECT = 190;
++    public static final int EFFECT_RINGTONE_FAIRVIEWS = 125;
++    public static final int EFFECT_RINGTONE_FANATICAL = 191;
++    public static final int EFFECT_RINGTONE_FEELING = 345;
++    public static final int EFFECT_RINGTONE_FIREFLY = 112;
++    public static final int EFFECT_RINGTONE_FRESHMORNING = 325;
++    public static final int EFFECT_RINGTONE_FRIENDSHIP = 211;
++    public static final int EFFECT_RINGTONE_FUNK = 324;
++    public static final int EFFECT_RINGTONE_FUNKY = 192;
++    public static final int EFFECT_RINGTONE_GAZINGOUT = 118;
++    public static final int EFFECT_RINGTONE_GUITAR = 193;
++    public static final int EFFECT_RINGTONE_HARPING = 194;
++    public static final int EFFECT_RINGTONE_HIGHLIGHT = 195;
++    public static final int EFFECT_RINGTONE_HOLIDAY = 326;
++    public static final int EFFECT_RINGTONE_HOUSEMUSIC = 322;
++    public static final int EFFECT_RINGTONE_INNOCENCE = 197;
++    public static final int EFFECT_RINGTONE_IN_GAME_RINGTON = 361;
++    public static final int EFFECT_RINGTONE_JAZZ_LIFE = 212;
++    public static final int EFFECT_RINGTONE_JOURNEY = 198;
++    public static final int EFFECT_RINGTONE_JOYOUS = 199;
++    public static final int EFFECT_RINGTONE_LAKESIDE = 117;
++    public static final int EFFECT_RINGTONE_LAZY = 200;
++    public static final int EFFECT_RINGTONE_LDYL = 196;
++    public static final int EFFECT_RINGTONE_LONGING = 105;
++    public static final int EFFECT_RINGTONE_MARIMBA = 201;
++    public static final int EFFECT_RINGTONE_MEMORIES = 115;
++    public static final int EFFECT_RINGTONE_MODERN = 328;
++    public static final int EFFECT_RINGTONE_MYSTICAL = 202;
++    public static final int EFFECT_RINGTONE_NATURE = 346;
++    public static final int EFFECT_RINGTONE_NIGHT = 116;
++    public static final int EFFECT_RINGTONE_NOSTALGIC = 101;
++    public static final int EFFECT_RINGTONE_NOVIBRATE = 67;
++    public static final int EFFECT_RINGTONE_OLD_TELEPHONE = 203;
++    public static final int EFFECT_RINGTONE_ONEPLUS_CALM = 184;
++    public static final int EFFECT_RINGTONE_ONEPLUS_TUNE = 204;
++    public static final int EFFECT_RINGTONE_OPTIMISTIC = 206;
++    public static final int EFFECT_RINGTONE_PACMAN = 315;
++    public static final int EFFECT_RINGTONE_PIANO = 207;
++    public static final int EFFECT_RINGTONE_PLAYPARK = 109;
++    public static final int EFFECT_RINGTONE_PURE = 127;
++    public static final int EFFECT_RINGTONE_REALME_ITSREALME = 82;
++    public static final int EFFECT_RINGTONE_REALME_JINGLE = 81;
++    public static final int EFFECT_RINGTONE_REALME_TUNE = 80;
++    public static final int EFFECT_RINGTONE_RELAX = 120;
++    public static final int EFFECT_RINGTONE_RHYTHM = 205;
++    public static final int EFFECT_RINGTONE_RM_ITSRM = 82;
++    public static final int EFFECT_RINGTONE_RM_JINGLE = 81;
++    public static final int EFFECT_RINGTONE_RM_TUNE = 80;
++    public static final int EFFECT_RINGTONE_ROCK = 360;
++    public static final int EFFECT_RINGTONE_ROMANCE = 102;
++    public static final int EFFECT_RINGTONE_SCHOOL = 122;
++    public static final int EFFECT_RINGTONE_SILENCE = 114;
++    public static final int EFFECT_RINGTONE_SOLITUDE = 126;
++    public static final int EFFECT_RINGTONE_STARS = 113;
++    public static final int EFFECT_RINGTONE_SUMMER = 124;
++    public static final int EFFECT_RINGTONE_SUN_GLITTERING = 213;
++    public static final int EFFECT_RINGTONE_TEMPLESOUND = 320;
++    public static final int EFFECT_RINGTONE_TRINKETS = 111;
++    public static final int EFFECT_RINGTONE_T_JINGLE = 307;
++    public static final int EFFECT_RINGTONE_VISIONS = 104;
++    public static final int EFFECT_RINGTONE_WATERCICADE = 327;
++    public static final int EFFECT_RINGTONE_WHIRL = 208;
++    public static final int EFFECT_RM_SOGOU_KEYBOARD_TURN_ON_VIBRATION = 568;
++    public static final int EFFECT_SCREENSHOT_FEEDBACK = 409;
++    public static final int EFFECT_SCROLL_ON_TIME_PICKER = 408;
++    public static final int EFFECT_SGAME_2ND_DOUBLE_KILL_CRISP = 492;
++    public static final int EFFECT_SGAME_2ND_DOUBLE_KILL_SOFT = 520;
++    public static final int EFFECT_SGAME_2ND_GAME_FAILED_CRISP = 497;
++    public static final int EFFECT_SGAME_2ND_GAME_FAILED_SOFT = 525;
++    public static final int EFFECT_SGAME_2ND_GAME_START_CRISP = 496;
++    public static final int EFFECT_SGAME_2ND_GAME_START_SOFT = 524;
++    public static final int EFFECT_SGAME_2ND_GAME_VICTORY_CRISP = 498;
++    public static final int EFFECT_SGAME_2ND_GAME_VICTORY_SOFT = 526;
++    public static final int EFFECT_SGAME_2ND_NORMAL_KILL_CRISP = 491;
++    public static final int EFFECT_SGAME_2ND_NORMAL_KILL_SOFT = 519;
++    public static final int EFFECT_SGAME_2ND_PENTA_KILL_CRISP = 495;
++    public static final int EFFECT_SGAME_2ND_PENTA_KILL_SOFT = 523;
++    public static final int EFFECT_SGAME_2ND_QUAD_KILL_CRISP = 494;
++    public static final int EFFECT_SGAME_2ND_QUAD_KILL_SOFT = 522;
++    public static final int EFFECT_SGAME_2ND_TRIPLE_KILL_CRISP = 493;
++    public static final int EFFECT_SGAME_2ND_TRIPLE_KILL_SOFT = 521;
++    public static final int EFFECT_SGAME_DOUBLE_KILL = 55;
++    public static final int EFFECT_SGAME_FIRST_BLOOD = 54;
++    public static final int EFFECT_SGAME_GODLIKE = 62;
++    public static final int EFFECT_SGAME_KILLING_SPREE = 59;
++    public static final int EFFECT_SGAME_LEGENDARY = 63;
++    public static final int EFFECT_SGAME_PANTA_KILL = 58;
++    public static final int EFFECT_SGAME_RAMPAGE = 60;
++    public static final int EFFECT_SGAME_TRIBLE_KILL = 56;
++    public static final int EFFECT_SGAME_ULTRA_KILL = 57;
++    public static final int EFFECT_SGAME_UNSTOPPABLE = 61;
++    public static final int EFFECT_TELCEL_RIE = 350;
++    public static final int EFFECT_VIBRATE_WITH_GT = 314;
++    public static final int EFFECT_VIBRATE_WITH_RINGTONE = 64;
++    public static final int EFFECT_VIRTUAL_KEY_FEEDBACK = 368;
++    public static final int EFFECT_WEAKEST_SHORT_VIBRATE_ONCE = 0;
++    public static final int EFFECT_WEAK_EMULATION_KEYBOARD_DOWN = 304;
++    public static final int EFFECT_WEAK_EMULATION_KEYBOARD_UP = 305;
++    public static final int EFFECT_WEAK_SHORT_VIBRATE_ONCE = 1;
++    public static final int EFFFCT_OTHER_STEPABLE_REGULATE = 152;
++    private static final int ERTP_INDEX_NOTIFICATION_INBOUND = 253;
++    private static final int RTP_INDEX_AFGAME_DOUBLE_KILL = 101;
++    private static final int RTP_INDEX_AFGAME_NORMAL_KILL = 100;
++    private static final int RTP_INDEX_AFGAME_PANTA_KILL = 104;
++    private static final int RTP_INDEX_AFGAME_TRIBLE_KILL = 102;
++    private static final int RTP_INDEX_AFGAME_ULTRA_KILL = 103;
++    private static final int RTP_INDEX_ALARM_ALARM_CLOCK = 262;
++    private static final int RTP_INDEX_ALARM_BEEP = 263;
++    private static final int RTP_INDEX_ALARM_BREEZE = 264;
++    private static final int RTP_INDEX_ALARM_CLOUDSCAPE = 94;
++    private static final int RTP_INDEX_ALARM_DAWN = 265;
++    private static final int RTP_INDEX_ALARM_DREAM = 266;
++    private static final int RTP_INDEX_ALARM_FLUTTERING = 267;
++    private static final int RTP_INDEX_ALARM_FLYER = 268;
++    private static final int RTP_INDEX_ALARM_INTERESTING = 269;
++    private static final int RTP_INDEX_ALARM_LEISURELY = 270;
++    private static final int RTP_INDEX_ALARM_MEMORY = 271;
++    private static final int RTP_INDEX_ALARM_PACMAN = 198;
++    private static final int RTP_INDEX_ALARM_RELIEVED = 272;
++    private static final int RTP_INDEX_ALARM_RIPPLE = 273;
++    private static final int RTP_INDEX_ALARM_SLOWLY = 274;
++    private static final int RTP_INDEX_ALARM_SPRING = 275;
++    private static final int RTP_INDEX_ALARM_STARS = 276;
++    private static final int RTP_INDEX_ALARM_SURGING = 277;
++    private static final int RTP_INDEX_ALARM_TACTFULLY = 278;
++    private static final int RTP_INDEX_ALARM_THE_WIND = 279;
++    private static final int RTP_INDEX_ALARM_WALKING_IN_THE_RAIN = 280;
++    private static final int RTP_INDEX_ALARM_WEATHER_CLOUDY = 143;
++    private static final int RTP_INDEX_ALARM_WEATHER_DEFAULT = 145;
++    private static final int RTP_INDEX_ALARM_WEATHER_RAIN = 149;
++    private static final int RTP_INDEX_ALARM_WEATHER_SMOG = 147;
++    private static final int RTP_INDEX_ALARM_WEATHER_SNOW = 148;
++    private static final int RTP_INDEX_ALARM_WEATHER_SUNNY = 146;
++    private static final int RTP_INDEX_ALARM_WEATHER_THUNDERSTORM = 144;
++    private static final int RTP_INDEX_ALARM_WEATHER_WIND = 142;
++    private static final int RTP_INDEX_ALERTSLIDER_DOWN = 308;
++    private static final int RTP_INDEX_ARTIST_ALARM = 153;
++    private static final int RTP_INDEX_ARTIST_NOTIFICATION = 150;
++    private static final int RTP_INDEX_ARTIST_RINGTONE = 151;
++    private static final int RTP_INDEX_ARTIST_TEXT = 152;
++    private static final int RTP_INDEX_ATTACH_TO_MIDDLE = 54;
++    private static final int RTP_INDEX_AUDITION = 301;
++    private static final int RTP_INDEX_BREATHE_SPREAD_OUT = 55;
++    private static final int RTP_INDEX_BREATH_SIMULATION = 118;
++    private static final int RTP_INDEX_BULB = 186;
++    private static final int RTP_INDEX_CANYON_CALL = 90;
++    private static final int RTP_INDEX_CHARGING_SIMULATION = 108;
++    private static final int RTP_INDEX_CHASE = 293;
++    private static final int RTP_INDEX_CLIMBER = 292;
++    private static final int RTP_INDEX_CLOSE = 175;
++    private static final int RTP_INDEX_COMPATIBLE_1 = 179;
++    private static final int RTP_INDEX_COMPATIBLE_2 = 180;
++    private static final int RTP_INDEX_COMPLETE = 185;
++    private static final int RTP_INDEX_EFFECT_ALARM_GOODENERGY = 95;
++    private static final int RTP_INDEX_EFFECT_NOTIFICATION_BLINK = 96;
++    private static final int RTP_INDEX_EFFECT_NOTIFICATION_WHOOPDOOP = 97;
++    private static final int RTP_INDEX_EFFECT_RINGTONE_FEELING = 98;
++    private static final int RTP_INDEX_EFFECT_RINGTONE_NATURE = 99;
++    private static final int RTP_INDEX_ELASTICITY = 187;
++    private static final int RTP_INDEX_EMULATION_KEYBOARD_DOWN = 302;
++    private static final int RTP_INDEX_EMULATION_KEYBOARD_UP = 303;
++    private static final int RTP_INDEX_ERROR_MESSAGE = 46;
++    private static final int RTP_INDEX_FINGERPRINT_CORRECT_EFFECT = 109;
++    private static final int RTP_INDEX_GAME_RINGTON = 297;
++    private static final int RTP_INDEX_HALF_LAP = 176;
++    private static final int RTP_INDEX_HEARTBEAT = 43;
++    private static final int RTP_INDEX_IN_GAME_ALARM = 299;
++    private static final int RTP_INDEX_IN_GAME_SMS = 300;
++    private static final int RTP_INDEX_KEYBOARD_MEDIUM = 111;
++    private static final int RTP_INDEX_KEYBOARD_STRONG = 112;
++    private static final int RTP_INDEX_KEYBOARD_WEAK = 110;
++    private static final int RTP_INDEX_LONG_VIBRATE = 56;
++    private static final int RTP_INDEX_MYSTIC_STORE = 91;
++    private static final int RTP_INDEX_NOTIFICATION_ALLAY = 237;
++    private static final int RTP_INDEX_NOTIFICATION_ALLUSION = 238;
++    private static final int RTP_INDEX_NOTIFICATION_AMIABLE = 239;
++    private static final int RTP_INDEX_NOTIFICATION_BEATING = 89;
++    private static final int RTP_INDEX_NOTIFICATION_BEATING_2 = 341;
++    private static final int RTP_INDEX_NOTIFICATION_BLARE = 240;
++    private static final int RTP_INDEX_NOTIFICATION_BLISSFUL = 241;
++    private static final int RTP_INDEX_NOTIFICATION_BLOCK = 82;
++    private static final int RTP_INDEX_NOTIFICATION_BLOCK_2 = 345;
++    private static final int RTP_INDEX_NOTIFICATION_BOWLBELL = 88;
++    private static final int RTP_INDEX_NOTIFICATION_BOWLBELL_2 = 337;
++    private static final int RTP_INDEX_NOTIFICATION_BRISK = 242;
++    private static final int RTP_INDEX_NOTIFICATION_BUBBLE = 243;
++    private static final int RTP_INDEX_NOTIFICATION_CHEERFUL = 244;
++    private static final int RTP_INDEX_NOTIFICATION_CIRCLE = 80;
++    private static final int RTP_INDEX_NOTIFICATION_CLEAR = 245;
++    private static final int RTP_INDEX_NOTIFICATION_COMELY = 246;
++    private static final int RTP_INDEX_NOTIFICATION_COZY = 247;
++    private static final int RTP_INDEX_NOTIFICATION_CRYSTALCLEAR = 128;
++    private static final int RTP_INDEX_NOTIFICATION_CRYSTALCLEAR_2 = 322;
++    private static final int RTP_INDEX_NOTIFICATION_DING = 248;
++    private static final int RTP_INDEX_NOTIFICATION_EFFERVESCE = 249;
++    private static final int RTP_INDEX_NOTIFICATION_ELEGANT = 250;
++    private static final int RTP_INDEX_NOTIFICATION_EMERGE = 123;
++    private static final int RTP_INDEX_NOTIFICATION_EMERGE_2 = 324;
++    private static final int RTP_INDEX_NOTIFICATION_FREE = 251;
++    private static final int RTP_INDEX_NOTIFICATION_FUN = 13;
++    private static final int RTP_INDEX_NOTIFICATION_FUN_2 = 332;
++    private static final int RTP_INDEX_NOTIFICATION_GRANULES = 9;
++    private static final int RTP_INDEX_NOTIFICATION_GRANULES_2 = 336;
++    private static final int RTP_INDEX_NOTIFICATION_HALLUCINATION = 252;
++    private static final int RTP_INDEX_NOTIFICATION_HARP = 131;
++    private static final int RTP_INDEX_NOTIFICATION_HARP_2 = 326;
++    private static final int RTP_INDEX_NOTIFICATION_HEY = 83;
++    private static final int RTP_INDEX_NOTIFICATION_HEY_2 = 339;
++    private static final int RTP_INDEX_NOTIFICATION_INGENIOUS = 12;
++    private static final int RTP_INDEX_NOTIFICATION_INGENIOUS_2 = 335;
++    private static final int RTP_INDEX_NOTIFICATION_INSTANT = 2;
++    private static final int RTP_INDEX_NOTIFICATION_INSTANT_2 = 331;
++    private static final int RTP_INDEX_NOTIFICATION_JINGLE_2 = 320;
++    private static final int RTP_INDEX_NOTIFICATION_JOY = 129;
++    private static final int RTP_INDEX_NOTIFICATION_JOY_2 = 329;
++    private static final int RTP_INDEX_NOTIFICATION_LIGHT = 254;
++    private static final int RTP_INDEX_NOTIFICATION_MEET = 255;
++    private static final int RTP_INDEX_NOTIFICATION_NAIVETY = 256;
++    private static final int RTP_INDEX_NOTIFICATION_NEWS = 85;
++    private static final int RTP_INDEX_NOTIFICATION_NEWS_2 = 340;
++    private static final int RTP_INDEX_NOTIFICATION_ONEPLUS_TWINKLE = 260;
++    private static final int RTP_INDEX_NOTIFICATION_OVERTONE = 132;
++    private static final int RTP_INDEX_NOTIFICATION_OVERTONE_2 = 327;
++    private static final int RTP_INDEX_NOTIFICATION_PACMAN = 199;
++    private static final int RTP_INDEX_NOTIFICATION_PERCUSSION = 126;
++    private static final int RTP_INDEX_NOTIFICATION_PERCUSSION_2 = 328;
++    private static final int RTP_INDEX_NOTIFICATION_QUICKLY = 257;
++    private static final int RTP_INDEX_NOTIFICATION_RECEIVE = 15;
++    private static final int RTP_INDEX_NOTIFICATION_RECEIVE_2 = 333;
++    private static final int RTP_INDEX_NOTIFICATION_RHYTHM = 258;
++    private static final int RTP_INDEX_NOTIFICATION_RIPPLES = 127;
++    private static final int RTP_INDEX_NOTIFICATION_RIPPLES_2 = 325;
++    private static final int RTP_INDEX_NOTIFICATION_RISE = 81;
++    private static final int RTP_INDEX_NOTIFICATION_RISE_2 = 338;
++    private static final int RTP_INDEX_NOTIFICATION_ROUND_2 = 344;
++    private static final int RTP_INDEX_NOTIFICATION_SHORT = 87;
++    private static final int RTP_INDEX_NOTIFICATION_SHORT_2 = 342;
++    private static final int RTP_INDEX_NOTIFICATION_SIMPLE = 133;
++    private static final int RTP_INDEX_NOTIFICATION_SIMPLE_2 = 321;
++    private static final int RTP_INDEX_NOTIFICATION_SPLASH = 16;
++    private static final int RTP_INDEX_NOTIFICATION_SPLASH_2 = 334;
++    private static final int RTP_INDEX_NOTIFICATION_SURPRISE = 259;
++    private static final int RTP_INDEX_NOTIFICATION_TOP = 86;
++    private static final int RTP_INDEX_NOTIFICATION_TOP_2 = 343;
++    private static final int RTP_INDEX_NOTIFICATION_TUNES = 125;
++    private static final int RTP_INDEX_NOTIFICATION_TUNES_2 = 323;
++    private static final int RTP_INDEX_NOTIFICATION_TWINKLE = 130;
++    private static final int RTP_INDEX_NOTIFICATION_TWINKLE_2 = 330;
++    private static final int RTP_INDEX_NOTIFICATION_ZANZA = 84;
++    private static final int RTP_INDEX_NOTIFICATION_ZANZA_2 = 346;
++    private static final int RTP_INDEX_RAPID = 45;
++    private static final int RTP_INDEX_RECENT_TASK_FEEDBACK = 309;
++    private static final int RTP_INDEX_REMIND = 44;
++    private static final int RTP_INDEX_RINGTONE_ALACRITY = 201;
++    private static final int RTP_INDEX_RINGTONE_AMENITY = 202;
++    private static final int RTP_INDEX_RINGTONE_BLISS = 138;
++    private static final int RTP_INDEX_RINGTONE_BLUES = 203;
++    private static final int RTP_INDEX_RINGTONE_BOUNCE = 204;
++    private static final int RTP_INDEX_RINGTONE_CALM = 140;
++    private static final int RTP_INDEX_RINGTONE_CHILDHOOD = 19;
++    private static final int RTP_INDEX_RINGTONE_CLASSIC = 135;
++    private static final int RTP_INDEX_RINGTONE_CLOUD = 206;
++    private static final int RTP_INDEX_RINGTONE_COMMUTE = 20;
++    private static final int RTP_INDEX_RINGTONE_CYCLOTRON = 207;
++    private static final int RTP_INDEX_RINGTONE_DANCE = 30;
++    private static final int RTP_INDEX_RINGTONE_DAZZLE = 28;
++    private static final int RTP_INDEX_RINGTONE_DELIGHT = 141;
++    private static final int RTP_INDEX_RINGTONE_DISTINCT = 208;
++    private static final int RTP_INDEX_RINGTONE_DREAM = 139;
++    private static final int RTP_INDEX_RINGTONE_DREAMJAZZ = 78;
++    private static final int RTP_INDEX_RINGTONE_DYNAMIC = 209;
++    private static final int RTP_INDEX_RINGTONE_EAGER = 232;
++    private static final int RTP_INDEX_RINGTONE_EASTERN_TRANQUILITY = 71;
++    private static final int RTP_INDEX_RINGTONE_EBULLITION = 233;
++    private static final int RTP_INDEX_RINGTONE_ECHO = 210;
++    private static final int RTP_INDEX_RINGTONE_ECLUB = 73;
++    private static final int RTP_INDEX_RINGTONE_EXPECT = 211;
++    private static final int RTP_INDEX_RINGTONE_FAIRVIEWS = 121;
++    private static final int RTP_INDEX_RINGTONE_FANATICAL = 212;
++    private static final int RTP_INDEX_RINGTONE_FIREFLY = 22;
++    private static final int RTP_INDEX_RINGTONE_FRESHMORNING = 70;
++    private static final int RTP_INDEX_RINGTONE_FRIENDSHIP = 234;
++    private static final int RTP_INDEX_RINGTONE_FUNK = 75;
++    private static final int RTP_INDEX_RINGTONE_FUNKY = 213;
++    private static final int RTP_INDEX_RINGTONE_GAZINGOUT = 24;
++    private static final int RTP_INDEX_RINGTONE_GUITAR = 214;
++    private static final int RTP_INDEX_RINGTONE_HARPING = 215;
++    private static final int RTP_INDEX_RINGTONE_HIGHLIGHT = 216;
++    private static final int RTP_INDEX_RINGTONE_HOLIDAY = 74;
++    private static final int RTP_INDEX_RINGTONE_HOUSEMUSIC = 76;
++    private static final int RTP_INDEX_RINGTONE_INNOCENCE = 218;
++    private static final int RTP_INDEX_RINGTONE_JAZZ_LIFE = 235;
++    private static final int RTP_INDEX_RINGTONE_JOURNEY = 219;
++    private static final int RTP_INDEX_RINGTONE_JOYOUS = 220;
++    private static final int RTP_INDEX_RINGTONE_LAKESIDE = 25;
++    private static final int RTP_INDEX_RINGTONE_LAZY = 221;
++    private static final int RTP_INDEX_RINGTONE_LDYL = 217;
++    private static final int RTP_INDEX_RINGTONE_LONGING = 124;
++    private static final int RTP_INDEX_RINGTONE_MARIMBA = 222;
++    private static final int RTP_INDEX_RINGTONE_MEMORIES = 27;
++    private static final int RTP_INDEX_RINGTONE_MODERN = 79;
++    private static final int RTP_INDEX_RINGTONE_MYSTICAL = 223;
++    private static final int RTP_INDEX_RINGTONE_NIGHT = 29;
++    private static final int RTP_INDEX_RINGTONE_NOSTALGIC = 134;
++    private static final int RTP_INDEX_RINGTONE_OLD_TELEPHONE = 224;
++    private static final int RTP_INDEX_RINGTONE_ONEPLUS_CALM = 205;
++    private static final int RTP_INDEX_RINGTONE_ONEPLUS_TUNE = 225;
++    private static final int RTP_INDEX_RINGTONE_OPTIMISTIC = 227;
++    private static final int RTP_INDEX_RINGTONE_PACMAN = 200;
++    private static final int RTP_INDEX_RINGTONE_PIANO = 228;
++    private static final int RTP_INDEX_RINGTONE_PLAYPARK = 31;
++    private static final int RTP_INDEX_RINGTONE_PURE = 49;
++    private static final int RTP_INDEX_RINGTONE_RELAX = 32;
++    private static final int RTP_INDEX_RINGTONE_RHYTHM = 226;
++    private static final int RTP_INDEX_RINGTONE_ROMANCE = 137;
++    private static final int RTP_INDEX_RINGTONE_SCHOOL = 17;
++    private static final int RTP_INDEX_RINGTONE_SILENCE = 35;
++    private static final int RTP_INDEX_RINGTONE_SOLITUDE = 34;
++    private static final int RTP_INDEX_RINGTONE_STARS = 36;
++    private static final int RTP_INDEX_RINGTONE_SUMMER = 37;
++    private static final int RTP_INDEX_RINGTONE_SUN_GLITTERING = 236;
++    private static final int RTP_INDEX_RINGTONE_TEMPLESOUND = 77;
++    private static final int RTP_INDEX_RINGTONE_TRINKETS = 38;
++    private static final int RTP_INDEX_RINGTONE_T_JINGLE = 231;
++    private static final int RTP_INDEX_RINGTONE_VISIONS = 136;
++    private static final int RTP_INDEX_RINGTONE_WATERCICADE = 72;
++    private static final int RTP_INDEX_RINGTONE_WHIRL = 229;
++    private static final int RTP_INDEX_RM_ITSRM = 161;
++    private static final int RTP_INDEX_RM_JINGLE = 163;
++    private static final int RTP_INDEX_RM_TUNE = 162;
++    private static final int RTP_INDEX_ROCK = 296;
++    private static final int RTP_INDEX_SGAME_DOUBLE_KILL = 61;
++    private static final int RTP_INDEX_SGAME_FIRST_BLOOD = 60;
++    private static final int RTP_INDEX_SGAME_GODLIKE = 68;
++    private static final int RTP_INDEX_SGAME_KILLING_SPREE = 65;
++    private static final int RTP_INDEX_SGAME_LEGENDARY = 69;
++    private static final int RTP_INDEX_SGAME_PANTA_KILL = 64;
++    private static final int RTP_INDEX_SGAME_RAMPAGE = 66;
++    private static final int RTP_INDEX_SGAME_TRIBLE_KILL = 62;
++    private static final int RTP_INDEX_SGAME_ULTRA_KILL = 63;
++    private static final int RTP_INDEX_SGAME_UNSTOPPABLE = 67;
++    private static final int RTP_INDEX_SPREAD_OUT = 47;
++    private static final int RTP_INDEX_STEPABLE_REGULATE = 105;
++    private static final int RTP_INDEX_STREAK = 42;
++    private static final int RTP_INDEX_STRENGTH_LEVEL_BAR_EDGE = 107;
++    private static final int RTP_INDEX_STRONG_ONE_SENCOND = 58;
++    private static final int RTP_INDEX_STRONG_POINTFOUR_SENCOND = 57;
++    private static final int RTP_INDEX_STYLESWITCH = 181;
++    private static final int RTP_INDEX_STYLESWITCH_SOFT = 188;
++    private static final int RTP_INDEX_SUSPENDBUTTON_BOTTOMOUT = 183;
++    private static final int RTP_INDEX_SUSPENDBUTTON_MENU = 184;
++    private static final int RTP_INDEX_SYMPHONIC = 41;
++    private static final int RTP_INDEX_TELCEL_RIE = 119;
++    private static final int RTP_INDEX_THREEFINGERS_LONG = 171;
++    private static final int RTP_INDEX_THREEFINGERS_SCREENSHOT = 173;
++    private static final int RTP_INDEX_THREEFINGERS_UP = 172;
++    private static final int RTP_INDEX_TWOFINGERS_DOWN = 177;
++    private static final int RTP_INDEX_TWOFINGERS_LONG = 178;
++    private static final int RTP_INDEX_UNFOLD = 174;
++    private static final int RTP_INDEX_VIBRATE_GT = 170;
++    private static final int RTP_INDEX_VIRTUAL_KEY_FEEDBACK = 310;
++    private static final int RTP_INDEX_VOICE_ASSISTANT = 122;
++    private static final int RTP_INDEX_VOICE_LEVEL_BAR_EDGE = 106;
++    private static final int RTP_INDEX_WAKE_UP_SAMURAI = 298;
++    private static final int RTP_INDEX_WATERRIPPLE = 182;
++    private static final int RTP_INDEX_WEAK_EMULATION_KEYBOARD_DOWN = 304;
++    private static final int RTP_INDEX_WEAK_EMULATION_KEYBOARD_UP = 305;
++    public static final int SETTINGS_VALUE_EFFECT_STRONG = 2400;
++    public static final int STRENGTH_LIGHT = 0;
++    public static final int STRENGTH_MEDIUM = 1;
++    public static final int STRENGTH_STRONG = 2;
++    private static final String TAG = "WaveformEffect";
++    private static final int WAVEFORM_ID_ENROLL_FINGERPRINT_SUCCESS = 316;
++    private static final int WAVEFORM_ID_LOCKSCREEN_FEEDBACK = 315;
++    private static final int WAVEFORM_ID_MESSAGE_HEARTBEAT = 323;
++    private static final int WAVEFORM_ID_MESSAGE_RAPID = 325;
++    private static final int WAVEFORM_ID_MESSAGE_REMIND = 324;
++    private static final int WAVEFORM_ID_MESSAGE_STREAK = 322;
++    private static final int WAVEFORM_ID_MESSAGE_SYMPHONIC = 321;
++    private static final int WAVEFORM_ID_SCREENSHOT_FEEDBACK = 318;
++    private static final int WAVEFORM_ID_THREE_STAGE_KEY = 365;
++    private static final int WAVEFORM_INDEX_BIG_SCALE = 13;
++    public static final int WAVEFORM_INDEX_INVALID = -1;
++    private static final int WAVEFORM_INDEX_MODERATE_SHORT = 3;
++    private static final int WAVEFORM_INDEX_PUBG_RIFLE = 10;
++    private static final int WAVEFORM_INDEX_PUBG_SHORT_GUN = 11;
++    private static final int WAVEFORM_INDEX_PUBG_SNIPER = 12;
++    private static final int WAVEFORM_INDEX_RAZER_CLICKY_PRESS = 8;
++    private static final int WAVEFORM_INDEX_RAZER_LINEAR_PRESS = 9;
++    private static final int WAVEFORM_INDEX_RUSH_LEFT_TO_RIGHT = 5;
++    private static final int WAVEFORM_INDEX_SMALL_SCALE = 14;
++    private static final int WAVEFORM_INDEX_STRONG_GRANULAR = 6;
++    private static final int WAVEFORM_INDEX_THREE_DIMENSION_TOUCH = 4;
++    private static final int WAVEFORM_INDEX_WEAKEST_SHORT = 1;
++    private static final int WAVEFORM_INDEX_WEAK_GRANULAR = 7;
++    private static final int WAVEFORM_INDEX_WEAK_SHORT = 2;
++    public static final int WAVEFORM_NODE_INVALID = -1;
++    public static final int WAVEFORM_NODE_RAM = 1;
++    public static final int WAVEFORM_NODE_RTP = 2;
++    private boolean mAsynchronous;
++    private boolean mEffectLoop;
++    private int mEffectStrength;
++    private int mEffectType;
++    private boolean mIsRingtoneCustomized;
++    private String mRingtoneFilePath;
++    private int mRingtoneVibrateType;
++    private boolean mStrengthSettingEnabled;
++    private int mUsageHint;
++    private IVibratorManagerService mVibratorService;
++
++    private WaveformEffect() {
++        this.mEffectType = -1;
++        this.mEffectStrength = -1;
++        this.mEffectLoop = false;
++        this.mRingtoneVibrateType = -1;
++        this.mIsRingtoneCustomized = false;
++        this.mRingtoneFilePath = "";
++        this.mStrengthSettingEnabled = true;
++        this.mAsynchronous = false;
++        this.mUsageHint = 0;
++    }
++
++    private WaveformEffect(Parcel in) {
++        this.mEffectType = -1;
++        this.mEffectStrength = -1;
++        this.mEffectLoop = false;
++        this.mRingtoneVibrateType = -1;
++        this.mIsRingtoneCustomized = false;
++        this.mRingtoneFilePath = "";
++        this.mStrengthSettingEnabled = true;
++        this.mAsynchronous = false;
++        this.mUsageHint = 0;
++        this.mEffectType = in.readInt();
++        this.mEffectStrength = in.readInt();
++        this.mEffectLoop = in.readBoolean();
++        this.mRingtoneVibrateType = in.readInt();
++        this.mIsRingtoneCustomized = in.readBoolean();
++        this.mRingtoneFilePath = in.readString();
++        this.mStrengthSettingEnabled = in.readBoolean();
++        this.mAsynchronous = in.readBoolean();
++        this.mUsageHint = in.readInt();
++    }
++
++    @Deprecated
++    public static boolean isRtpTouchWaveFormEffect(int type) {
++        switch (type) {
++            case 152:
++            case 153:
++            case 154:
++            case 156:
++            case 157:
++            case 158:
++            case 159:
++            case 165:
++            case 166:
++            case 167:
++            case 270:
++            case 271:
++            case 272:
++            case 273:
++            case 274:
++            case 275:
++            case 276:
++            case 277:
++            case 278:
++            case 279:
++            case 280:
++            case EFFECT_OTHER_WATERRIPPLE /* 281 */:
++            case EFFECT_OTHER_SUSPENDBUTTON_BOTTOMOUT /* 282 */:
++            case EFFECT_OTHER_SUSPENDBUTTON_MENU /* 283 */:
++            case EFFECT_OTHER_COMPLETE /* 284 */:
++            case EFFECT_OTHER_BULB /* 285 */:
++            case EFFECT_OTHER_ELASTICITY /* 286 */:
++            case EFFECT_OTHER_STYLESWITCH_SOFT /* 287 */:
++            case 302:
++            case 303:
++            case 304:
++            case 305:
++                return true;
++            default:
++                return false;
++        }
++    }
++
++    @Deprecated
++    public static boolean isRtpIndexTouchWaveFormEffect(int type) {
++        switch (type) {
++            case 105:
++            case 107:
++            case 110:
++            case 111:
++            case 112:
++            case 302:
++            case 303:
++            case 304:
++            case 305:
++                return true;
++            default:
++                return false;
++        }
++    }
++
++    @Deprecated
++    public static String getRingtoneTitle(String path) {
++        return null;
++    }
++
++    @Deprecated
++    public static int getRingtoneWaveFormEffect(String title) {
++        return -1;
++    }
++
++    @Deprecated
++    public static int getWaveFormIndex(int effectId) {
++        return -1;
++    }
++
++    @Deprecated
++    public static long[] getWaveFormIndexDurationArray(int effectId) {
++        return new long[]{-1};
++    }
++
++    public int getEffectType() {
++        return this.mEffectType;
++    }
++
++    public int[] getWaveFormIndexArray() {
++        return getWaveFormIndexArray(this.mEffectType);
++    }
++
++    public int[] getWaveFormIndexArray(int effectType) {
++        int waveformIndex = -1;
++        if (this.mVibratorService == null) {
++            this.mVibratorService = IVibratorManagerService.Stub.asInterface(ServiceManager.getService("vibrator_manager"));
++        }
++        if (this.mVibratorService != null) {
++            Slog.d(TAG, "access vibrator manager service failed");
++        }
++        return new int[]{waveformIndex};
++    }
++
++    public long[] getWaveFormDurationArray() {
++        return getWaveFormDurationArray(this.mEffectType);
++    }
++
++    public long[] getWaveFormDurationArray(int effectType) {
++        long duration = 0;
++        if (this.mVibratorService == null) {
++            this.mVibratorService = IVibratorManagerService.Stub.asInterface(ServiceManager.getService("vibrator_manager"));
++        }
++        if (this.mVibratorService != null) {
++            Slog.d(TAG, "access linear motor vibrator service failed");
++        }
++        Slog.d(TAG, "getWaveFormDurationArray effectType=" + effectType + " duration=" + duration);
++        return new long[]{duration};
++    }
++
++    public int getEffectStrength() {
++        return this.mEffectStrength;
++    }
++
++    public boolean getEffectLoop() {
++        return this.mEffectLoop;
++    }
++
++    public int getRingtoneVibrateType() {
++        return this.mRingtoneVibrateType;
++    }
++
++    public boolean getIsRingtoneCustomized() {
++        return this.mIsRingtoneCustomized;
++    }
++
++    public String getRingtoneFilePath() {
++        return this.mRingtoneFilePath;
++    }
++
++    public boolean getStrengthSettingEnabled() {
++        return this.mStrengthSettingEnabled;
++    }
++
++    public boolean getAsynchronous() {
++        return this.mAsynchronous;
++    }
++
++    public int getUsageHint() {
++        return this.mUsageHint;
++    }
++
++    public int getWaveFormNodeType() {
++        if (this.mRingtoneVibrateType == -1) {
++            if (this.mVibratorService == null) {
++                this.mVibratorService = IVibratorManagerService.Stub.asInterface(ServiceManager.getService("vibrator_manager"));
++            }
++        }
++        return -1;
++    }
++
++    @Override // android.os.Parcelable
++    public int describeContents() {
++        return 0;
++    }
++
++    @Override // android.os.Parcelable
++    public void writeToParcel(Parcel dest, int flags) {
++        dest.writeInt(this.mEffectType);
++        dest.writeInt(this.mEffectStrength);
++        dest.writeBoolean(this.mEffectLoop);
++        dest.writeInt(this.mRingtoneVibrateType);
++        dest.writeBoolean(this.mIsRingtoneCustomized);
++        dest.writeString(this.mRingtoneFilePath);
++        dest.writeBoolean(this.mStrengthSettingEnabled);
++        dest.writeBoolean(this.mAsynchronous);
++        dest.writeInt(this.mUsageHint);
++    }
++
++    public boolean equals(Object o) {
++        if (this == o) {
++            return true;
++        }
++        if (o == null || getClass() != o.getClass()) {
++            return false;
++        }
++        WaveformEffect that = (WaveformEffect) o;
++        if (this.mEffectType == that.getEffectType() && this.mEffectStrength == that.getEffectStrength() && this.mEffectLoop == that.getEffectLoop() && this.mRingtoneVibrateType == that.getRingtoneVibrateType() && this.mIsRingtoneCustomized == that.getIsRingtoneCustomized() && this.mRingtoneFilePath.equals(that.getRingtoneFilePath()) && this.mStrengthSettingEnabled == that.getStrengthSettingEnabled() && this.mAsynchronous == that.getAsynchronous() && this.mUsageHint == that.getUsageHint()) {
++            return true;
++        }
++        return false;
++    }
++
++    public int hashCode() {
++        return Objects.hash(new Object[0]);
++    }
++
++    public String toString() {
++        StringBuilder msg = new StringBuilder();
++        msg.append("WaveformEffect { ").append(Integer.toHexString(System.identityHashCode(this)));
++        msg.append(", effectType=").append(this.mEffectType);
++        msg.append(", effectStrength=").append(this.mEffectStrength);
++        msg.append(", effectLoop=").append(this.mEffectLoop);
++        msg.append(", ringtoneVibrateType=").append(this.mRingtoneVibrateType);
++        msg.append(", isRingtoneCustomized=").append(this.mIsRingtoneCustomized);
++        msg.append(", ringtoneFilePath=").append(this.mRingtoneFilePath);
++        msg.append(", strengthSettingEnabled=").append(this.mStrengthSettingEnabled);
++        msg.append(", asynchronous=").append(this.mAsynchronous);
++        msg.append(", usageHint=").append(this.mUsageHint);
++        msg.append(" }");
++        return msg.toString();
++    }
++
++    public static class Builder {
++        private boolean mAsynchronous;
++        private boolean mEffectLoop;
++        private int mEffectStrength;
++        private int mEffectType;
++        private boolean mIsRingtoneCustomized;
++        private String mRingtoneFilePath;
++        private int mRingtoneVibrateType;
++        private boolean mStrengthSettingEnabled;
++        private int mUsageHint;
++
++        public Builder() {
++            this.mEffectType = -1;
++            this.mEffectStrength = -1;
++            this.mEffectLoop = false;
++            this.mRingtoneVibrateType = -1;
++            this.mIsRingtoneCustomized = false;
++            this.mRingtoneFilePath = "";
++            this.mStrengthSettingEnabled = true;
++            this.mAsynchronous = false;
++            this.mUsageHint = 0;
++        }
++
++        public Builder(WaveformEffect we) {
++            this.mEffectType = -1;
++            this.mEffectStrength = -1;
++            this.mEffectLoop = false;
++            this.mRingtoneVibrateType = -1;
++            this.mIsRingtoneCustomized = false;
++            this.mRingtoneFilePath = "";
++            this.mStrengthSettingEnabled = true;
++            this.mAsynchronous = false;
++            this.mUsageHint = 0;
++            this.mEffectType = we.mEffectType;
++        }
++
++        public WaveformEffect build() {
++            WaveformEffect we = new WaveformEffect();
++            we.mEffectType = this.mEffectType;
++            we.mEffectStrength = this.mEffectStrength;
++            we.mEffectLoop = this.mEffectLoop;
++            we.mRingtoneVibrateType = this.mRingtoneVibrateType;
++            we.mIsRingtoneCustomized = this.mIsRingtoneCustomized;
++            we.mRingtoneFilePath = this.mRingtoneFilePath;
++            if (this.mEffectStrength == -1 && !this.mStrengthSettingEnabled) {
++                Slog.d(WaveformEffect.TAG, "When the application side does not transmit the vibration strength,force the conversion of mStrengthSettingEnabled to true");
++                this.mStrengthSettingEnabled = true;
++            }
++            we.mStrengthSettingEnabled = this.mStrengthSettingEnabled;
++            we.mAsynchronous = this.mAsynchronous;
++            we.mUsageHint = this.mUsageHint;
++            return we;
++        }
++
++        public Builder setEffectType(int type) {
++            this.mEffectType = type;
++            return this;
++        }
++
++        public Builder setEffectStrength(int strength) {
++            if (strength <= 2400) {
++                this.mEffectStrength = strength;
++            } else {
++                this.mEffectStrength = -1;
++            }
++            return this;
++        }
++
++        public Builder setEffectLoop(boolean loop) {
++            this.mEffectLoop = loop;
++            return this;
++        }
++
++        public Builder setRingtoneVibrateType(int type) {
++            this.mRingtoneVibrateType = type;
++            return this;
++        }
++
++        public Builder setIsRingtoneCustomized(boolean customized) {
++            this.mIsRingtoneCustomized = customized;
++            return this;
++        }
++
++        public Builder setRingtoneFilePath(String path) {
++            this.mRingtoneFilePath = path;
++            return this;
++        }
++
++        public Builder setStrengthSettingEnabled(boolean enabled) {
++            this.mStrengthSettingEnabled = enabled;
++            return this;
++        }
++
++        public Builder setAsynchronous(boolean async) {
++            this.mAsynchronous = async;
++            return this;
++        }
++
++        public Builder setUsageHint(int usageHint) {
++            this.mUsageHint = usageHint;
++            return this;
++        }
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/osense/OsenseResEventClient.java b/oplus-fwk/src/com/oplus/osense/OsenseResEventClient.java
+index 735c9e8..c15fb65 100644
+--- a/oplus-fwk/src/com/oplus/osense/OsenseResEventClient.java
++++ b/oplus-fwk/src/com/oplus/osense/OsenseResEventClient.java
+@@ -2,6 +2,7 @@ package com.oplus.osense;
+ 
+ import com.oplus.osense.eventinfo.EventConfig;
+ import com.oplus.osense.eventinfo.OsenseEventCallback;
++import android.os.Bundle;
+ 
+ public class OsenseResEventClient {
+ 
+@@ -21,4 +22,8 @@ public class OsenseResEventClient {
+     public int unregisterEventCallback(OsenseEventCallback callback, EventConfig eventConfig) {
+         return 0;
+     }
++
++    public void requestSceneAction(Bundle bundle) {
++        return;
++    }
+ }
+diff --git a/oplus-fwk/src/com/oplus/osense/eventinfo/OsenseConfig.java b/oplus-fwk/src/com/oplus/osense/eventinfo/OsenseConfig.java
+new file mode 100644
+index 0000000..72908d9
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/osense/eventinfo/OsenseConfig.java
+@@ -0,0 +1,70 @@
++package com.oplus.osense.eventinfo;
++
++import android.os.Bundle;
++import android.os.Parcel;
++import android.os.Parcelable;
++import java.util.Arrays;
++
++public class OsenseConfig implements Parcelable {
++    private int mEventType;
++    private Bundle mExtra;
++
++    public OsenseConfig(int eventType, Bundle extra) {
++        this.mEventType = eventType;
++        this.mExtra = extra;
++    }
++
++    protected OsenseConfig(Parcel in) {
++        this.mEventType = in.readInt();
++        this.mExtra = in.readBundle(getClass().getClassLoader());
++    }
++
++    public static final Creator<OsenseConfig> CREATOR = new Creator<OsenseConfig>() {
++        @Override
++        public OsenseConfig createFromParcel(Parcel in) {
++            return new OsenseConfig(in);
++        }
++
++        @Override
++        public OsenseConfig[] newArray(int size) {
++            return new OsenseConfig[size];
++        }
++    };
++
++    public int getEventType() {
++        return this.mEventType;
++    }
++
++    public Bundle getExtra() {
++        return this.mExtra;
++    }
++
++    @Override
++    public boolean equals(Object object) {
++        if (this == object) return true;
++        if (object == null || getClass() != object.getClass()) return false;
++        OsenseConfig that = (OsenseConfig) object;
++        return mEventType == that.mEventType;
++    }
++
++    @Override
++    public int hashCode() {
++        return Arrays.hashCode(new Object[]{mEventType});
++    }
++
++    @Override
++    public String toString() {
++        return "OsenseConfig{mEventType=" + this.mEventType + ", mExtra=" + (this.mExtra == null ? "null" : this.mExtra) + '}';
++    }
++
++    @Override
++    public int describeContents() {
++        return 0;
++    }
++
++    @Override
++    public void writeToParcel(Parcel dest, int flags) {
++        dest.writeInt(this.mEventType);
++        dest.writeBundle(this.mExtra);
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/shoulderpressure/IOplusShoulderPressureManager.java b/oplus-fwk/src/com/oplus/shoulderpressure/IOplusShoulderPressureManager.java
+new file mode 100644
+index 0000000..2e961a9
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/shoulderpressure/IOplusShoulderPressureManager.java
+@@ -0,0 +1,269 @@
++package com.oplus.shoulderpressure;
++
++import android.os.Binder;
++import android.os.IBinder;
++import android.os.IInterface;
++import android.os.Parcel;
++import android.os.RemoteException;
++
++/* loaded from: classes.dex */
++public interface IOplusShoulderPressureManager extends IInterface {
++    public static final String DESCRIPTOR = "com.oplus.shoulderpressure.IOplusShoulderPressureManager";
++
++    boolean isShoulderPressureNodeSupport(int i, int i2) throws RemoteException;
++
++    String readShoulderPressureNodeFile(int i) throws RemoteException;
++
++    String readShoulderPressureNodeFileByDevice(int i, int i2) throws RemoteException;
++
++    boolean writeShoulderPressureNodeFile(int i, String str) throws RemoteException;
++
++    boolean writeShoulderPressureNodeFileByDevice(int i, int i2, String str) throws RemoteException;
++
++    public static class Default implements IOplusShoulderPressureManager {
++        @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++        public String readShoulderPressureNodeFile(int nodeFlag) throws RemoteException {
++            return null;
++        }
++
++        @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++        public String readShoulderPressureNodeFileByDevice(int deviceId, int nodeFlag) throws RemoteException {
++            return null;
++        }
++
++        @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++        public boolean writeShoulderPressureNodeFile(int nodeFlag, String info) throws RemoteException {
++            return false;
++        }
++
++        @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++        public boolean writeShoulderPressureNodeFileByDevice(int deviceId, int nodeFlag, String info) throws RemoteException {
++            return false;
++        }
++
++        @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++        public boolean isShoulderPressureNodeSupport(int deviceId, int nodeFlag) throws RemoteException {
++            return false;
++        }
++
++        @Override // android.os.IInterface
++        public IBinder asBinder() {
++            return null;
++        }
++    }
++
++    public static abstract class Stub extends Binder implements IOplusShoulderPressureManager {
++        static final int TRANSACTION_isShoulderPressureNodeSupport = 5;
++        static final int TRANSACTION_readShoulderPressureNodeFile = 1;
++        static final int TRANSACTION_readShoulderPressureNodeFileByDevice = 2;
++        static final int TRANSACTION_writeShoulderPressureNodeFile = 3;
++        static final int TRANSACTION_writeShoulderPressureNodeFileByDevice = 4;
++
++        public Stub() {
++            attachInterface(this, IOplusShoulderPressureManager.DESCRIPTOR);
++        }
++
++        public static IOplusShoulderPressureManager asInterface(IBinder obj) {
++            if (obj == null) {
++                return null;
++            }
++            IInterface iin = obj.queryLocalInterface(IOplusShoulderPressureManager.DESCRIPTOR);
++            if (iin != null && (iin instanceof IOplusShoulderPressureManager)) {
++                return (IOplusShoulderPressureManager) iin;
++            }
++            return new Proxy(obj);
++        }
++
++        @Override // android.os.IInterface
++        public IBinder asBinder() {
++            return this;
++        }
++
++        public static String getDefaultTransactionName(int transactionCode) {
++            switch (transactionCode) {
++                case 1:
++                    return "readShoulderPressureNodeFile";
++                case 2:
++                    return "readShoulderPressureNodeFileByDevice";
++                case 3:
++                    return "writeShoulderPressureNodeFile";
++                case 4:
++                    return "writeShoulderPressureNodeFileByDevice";
++                case 5:
++                    return "isShoulderPressureNodeSupport";
++                default:
++                    return null;
++            }
++        }
++
++        public String getTransactionName(int transactionCode) {
++            return getDefaultTransactionName(transactionCode);
++        }
++
++        @Override // android.os.Binder
++        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
++            if (code >= 1 && code <= 16777215) {
++                data.enforceInterface(IOplusShoulderPressureManager.DESCRIPTOR);
++            }
++            if (code == 1598968902) {
++                reply.writeString(IOplusShoulderPressureManager.DESCRIPTOR);
++                return true;
++            }
++            switch (code) {
++                case 1:
++                    int _arg0 = data.readInt();
++                    data.enforceNoDataAvail();
++                    String _result = readShoulderPressureNodeFile(_arg0);
++                    reply.writeNoException();
++                    reply.writeString(_result);
++                    return true;
++                case 2:
++                    int _arg02 = data.readInt();
++                    int _arg1 = data.readInt();
++                    data.enforceNoDataAvail();
++                    String _result2 = readShoulderPressureNodeFileByDevice(_arg02, _arg1);
++                    reply.writeNoException();
++                    reply.writeString(_result2);
++                    return true;
++                case 3:
++                    int _arg03 = data.readInt();
++                    String _arg12 = data.readString();
++                    data.enforceNoDataAvail();
++                    boolean _result3 = writeShoulderPressureNodeFile(_arg03, _arg12);
++                    reply.writeNoException();
++                    reply.writeBoolean(_result3);
++                    return true;
++                case 4:
++                    int _arg04 = data.readInt();
++                    int _arg13 = data.readInt();
++                    String _arg2 = data.readString();
++                    data.enforceNoDataAvail();
++                    boolean _result4 = writeShoulderPressureNodeFileByDevice(_arg04, _arg13, _arg2);
++                    reply.writeNoException();
++                    reply.writeBoolean(_result4);
++                    return true;
++                case 5:
++                    int _arg05 = data.readInt();
++                    int _arg14 = data.readInt();
++                    data.enforceNoDataAvail();
++                    boolean _result5 = isShoulderPressureNodeSupport(_arg05, _arg14);
++                    reply.writeNoException();
++                    reply.writeBoolean(_result5);
++                    return true;
++                default:
++                    return super.onTransact(code, data, reply, flags);
++            }
++        }
++
++        private static class Proxy implements IOplusShoulderPressureManager {
++            private IBinder mRemote;
++
++            Proxy(IBinder remote) {
++                this.mRemote = remote;
++            }
++
++            @Override // android.os.IInterface
++            public IBinder asBinder() {
++                return this.mRemote;
++            }
++
++            public String getInterfaceDescriptor() {
++                return IOplusShoulderPressureManager.DESCRIPTOR;
++            }
++
++            @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++            public String readShoulderPressureNodeFile(int nodeFlag) throws RemoteException {
++                Parcel _data = Parcel.obtain(asBinder());
++                Parcel _reply = Parcel.obtain();
++                try {
++                    _data.writeInterfaceToken(IOplusShoulderPressureManager.DESCRIPTOR);
++                    _data.writeInt(nodeFlag);
++                    this.mRemote.transact(1, _data, _reply, 0);
++                    _reply.readException();
++                    String _result = _reply.readString();
++                    return _result;
++                } finally {
++                    _reply.recycle();
++                    _data.recycle();
++                }
++            }
++
++            @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++            public String readShoulderPressureNodeFileByDevice(int deviceId, int nodeFlag) throws RemoteException {
++                Parcel _data = Parcel.obtain(asBinder());
++                Parcel _reply = Parcel.obtain();
++                try {
++                    _data.writeInterfaceToken(IOplusShoulderPressureManager.DESCRIPTOR);
++                    _data.writeInt(deviceId);
++                    _data.writeInt(nodeFlag);
++                    this.mRemote.transact(2, _data, _reply, 0);
++                    _reply.readException();
++                    String _result = _reply.readString();
++                    return _result;
++                } finally {
++                    _reply.recycle();
++                    _data.recycle();
++                }
++            }
++
++            @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++            public boolean writeShoulderPressureNodeFile(int nodeFlag, String info) throws RemoteException {
++                Parcel _data = Parcel.obtain(asBinder());
++                Parcel _reply = Parcel.obtain();
++                try {
++                    _data.writeInterfaceToken(IOplusShoulderPressureManager.DESCRIPTOR);
++                    _data.writeInt(nodeFlag);
++                    _data.writeString(info);
++                    this.mRemote.transact(3, _data, _reply, 0);
++                    _reply.readException();
++                    boolean _result = _reply.readBoolean();
++                    return _result;
++                } finally {
++                    _reply.recycle();
++                    _data.recycle();
++                }
++            }
++
++            @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++            public boolean writeShoulderPressureNodeFileByDevice(int deviceId, int nodeFlag, String info) throws RemoteException {
++                Parcel _data = Parcel.obtain(asBinder());
++                Parcel _reply = Parcel.obtain();
++                try {
++                    _data.writeInterfaceToken(IOplusShoulderPressureManager.DESCRIPTOR);
++                    _data.writeInt(deviceId);
++                    _data.writeInt(nodeFlag);
++                    _data.writeString(info);
++                    this.mRemote.transact(4, _data, _reply, 0);
++                    _reply.readException();
++                    boolean _result = _reply.readBoolean();
++                    return _result;
++                } finally {
++                    _reply.recycle();
++                    _data.recycle();
++                }
++            }
++
++            @Override // com.oplus.shoulderpressure.IOplusShoulderPressureManager
++            public boolean isShoulderPressureNodeSupport(int deviceId, int nodeFlag) throws RemoteException {
++                Parcel _data = Parcel.obtain(asBinder());
++                Parcel _reply = Parcel.obtain();
++                try {
++                    _data.writeInterfaceToken(IOplusShoulderPressureManager.DESCRIPTOR);
++                    _data.writeInt(deviceId);
++                    _data.writeInt(nodeFlag);
++                    this.mRemote.transact(5, _data, _reply, 0);
++                    _reply.readException();
++                    boolean _result = _reply.readBoolean();
++                    return _result;
++                } finally {
++                    _reply.recycle();
++                    _data.recycle();
++                }
++            }
++        }
++
++        public int getMaxTransactionId() {
++            return 4;
++        }
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/shoulderpressure/OplusShoulderPressureManager.java b/oplus-fwk/src/com/oplus/shoulderpressure/OplusShoulderPressureManager.java
+new file mode 100644
+index 0000000..cbbef0c
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/shoulderpressure/OplusShoulderPressureManager.java
+@@ -0,0 +1,99 @@
++package com.oplus.shoulderpressure;
++
++import android.os.Binder;
++import android.os.IBinder;
++import android.os.RemoteException;
++import android.util.Log;
++import com.oplus.shoulderpressure.IOplusShoulderPressureManager;
++import com.oplus.wrapper.os.ServiceManager;
++import com.oplus.wrapper.os.SystemProperties;
++
++/* loaded from: classes.dex */
++public class OplusShoulderPressureManager {
++    private static final boolean DEBUG = SystemProperties.getBoolean("persist.sys.assert.panic", false);
++    public static final int HALL_LEFT_PRESS_GEAR = 124;
++    public static final int HALL_RIGHT_PRESS_GEAR = 125;
++    public static final int MECHAICAL_KEY_PARAMS = 127;
++    public static final int PRESS_CHARGE_STATE = 128;
++    public static final int PRESS_GAME_SWITCH_ENABLE = 126;
++    private static final String TAG = "OplusShoulderPressureManager";
++    private IOplusShoulderPressureManager mOplusShoulderPressureManager;
++
++    public OplusShoulderPressureManager() {
++        IBinder binder = ServiceManager.getService("OplusShoulderPressureManagerService");
++        if (binder == null) {
++            Log.d(TAG, "OplusShoulderPressureManagerService is null");
++        } else if (this.mOplusShoulderPressureManager != IOplusShoulderPressureManager.Stub.asInterface(binder)) {
++            this.mOplusShoulderPressureManager = IOplusShoulderPressureManager.Stub.asInterface(binder);
++        }
++    }
++
++    public String readShoulderPressureNodeFile(int nodeFlag) {
++        if (DEBUG) {
++            Log.d(TAG, "readShoulderPressureNodeFile, uid: " + Binder.getCallingUid() + ", pid: " + Binder.getCallingPid() + ", nodeFlag: " + nodeFlag);
++        }
++        try {
++            return this.mOplusShoulderPressureManager.readShoulderPressureNodeFile(nodeFlag);
++        } catch (RemoteException e) {
++            Log.e(TAG, "readShoulderPressureNodeFile failed, err: " + e);
++            return null;
++        }
++    }
++
++    public String readShoulderPressureNodeFileByDevice(int deviceId, int nodeFlag) {
++        if (DEBUG) {
++            Log.d(TAG, "readShoulderPressureNodeFileByDevice, uid: " + Binder.getCallingUid() + ", pid: " + Binder.getCallingPid() + ", nodeFlag: " + nodeFlag + ", deviceId :" + deviceId);
++        }
++        try {
++            return this.mOplusShoulderPressureManager.readShoulderPressureNodeFileByDevice(deviceId, nodeFlag);
++        } catch (RemoteException e) {
++            Log.e(TAG, "readShoulderPressureNodeFileByDevice failed, err: " + e + ", deviceId :" + deviceId);
++            return null;
++        }
++    }
++
++    public boolean writeShoulderPressureNodeFile(int nodeFlag, String info) {
++        boolean zWriteShoulderPressureNodeFile;
++        if (DEBUG) {
++            Log.d(TAG, "writeShoulderPressureNodeFile, uid: " + Binder.getCallingUid() + ", pid: " + Binder.getCallingPid() + ", nodeFlag: " + nodeFlag + ", info: " + info);
++        }
++        try {
++            synchronized (OplusShoulderPressureManager.class) {
++                zWriteShoulderPressureNodeFile = this.mOplusShoulderPressureManager.writeShoulderPressureNodeFile(nodeFlag, info);
++            }
++            return zWriteShoulderPressureNodeFile;
++        } catch (RemoteException e) {
++            Log.e(TAG, "writeShoulderPressureNodeFile failed, err: " + e);
++            return false;
++        }
++    }
++
++    public boolean writeShoulderPressureNodeFileByDevice(int deviceId, int nodeFlag, String info) {
++        boolean zWriteShoulderPressureNodeFileByDevice;
++        if (DEBUG) {
++            Log.d(TAG, "writeShoulderPressureNodeFileByDevice, uid: " + Binder.getCallingUid() + ", pid: " + Binder.getCallingPid() + ", nodeFlag: " + nodeFlag + ", info: " + info);
++        }
++        try {
++            synchronized (OplusShoulderPressureManager.class) {
++                zWriteShoulderPressureNodeFileByDevice = this.mOplusShoulderPressureManager.writeShoulderPressureNodeFileByDevice(deviceId, nodeFlag, info);
++            }
++            return zWriteShoulderPressureNodeFileByDevice;
++        } catch (RemoteException e) {
++            Log.e(TAG, "writeShoulderPressureNodeFileByDevice failed, err: " + e);
++            return false;
++        }
++    }
++
++    public boolean isShoulderPressureNodeSupport(int deviceId, int nodeFlag) {
++        if (mOplusShoulderPressureManager == null) return false;
++        if (DEBUG) {
++            Log.d(TAG, "isShoulderPressureNodeSupport, uid: " + Binder.getCallingUid() + ", pid: " + Binder.getCallingPid() + ", nodeFlag: " + nodeFlag + ", deviceId :" + deviceId);
++        }
++        try {
++            return this.mOplusShoulderPressureManager.isShoulderPressureNodeSupport(deviceId, nodeFlag);
++        } catch (RemoteException e) {
++            Log.e(TAG, "isShoulderPressureNodeSupport failed, err: " + e + ", deviceId :" + deviceId);
++            return false;
++        }
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/util/OplusTypeCastingHelper.java b/oplus-fwk/src/com/oplus/util/OplusTypeCastingHelper.java
+new file mode 100644
+index 0000000..b0871d9
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/util/OplusTypeCastingHelper.java
+@@ -0,0 +1,21 @@
++package com.oplus.util;
++
++public final class OplusTypeCastingHelper {
++    @SuppressWarnings("unchecked")
++    public static <T> T typeCasting(Class<T> type, Object obj) {
++        if (obj != null && type != null && type.isInstance(obj)) {
++            return (T) obj;
++        }
++
++
++        if (type != null && "android.content.res.OplusBaseConfiguration".equals(type.getName())) {
++            try {
++                return (T) type.newInstance();
++            } catch (Exception e) {
++                // Ignore
++            }
++        }
++
++        return null;
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/view/IJankManager.java b/oplus-fwk/src/com/oplus/view/IJankManager.java
+new file mode 100644
+index 0000000..ee26fcb
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/view/IJankManager.java
+@@ -0,0 +1,216 @@
++package com.oplus.view;
++
++import android.common.IOplusCommonFeature;
++import android.common.OplusFeatureList;
++import android.content.Context;
++import java.util.ArrayList;
++
++public interface IJankManager extends IOplusCommonFeature {
++    public static final IJankManager DEFAULT = new IJankManager() {};
++    public static final int MS_TO_NS = 1000000;
++    public static final String NAME = "IJankManager";
++    public static final int TASK_OPERATION_LATENCY_THRESHOLD = 435;
++    public static final int TRANSIT_CLOSE = 2;
++    public static final int TRANSIT_OPEN = 1;
++    public static final int TRANSIT_TO_BACK = 4;
++    public static final int TRANSIT_TO_FRONT = 3;
++
++    public static class Action {
++        public static final int ACTION_END = 0;
++        public static final int ACTION_START = 1;
++    }
++
++    public static final class JPolicy {
++        public static final long FLING_TYPE = 128;
++        public static final long IGNORE_NEXT_SCENE_FLAG = 256;
++        public static final long IGNORE_TIMEOUT = 32;
++        public static final long MOVE_TYPE = 64;
++        public static final long OVERRIDE_BY_NEXT_SCENE_FLAG = 16;
++        public static final long USD_SELF_TIME_FLAG = 2;
++        public static final long USE_DOWN_EVENT_FLAG = 4;
++        public static final long USE_UP_EVENT_FLAG = 8;
++    }
++
++    public static class LauncherScene {
++        public static final int APP_START_ANIM = 1;
++        public static final int BACK_TO_LAUNCHER_ANIM = 2;
++        public static final int ENTER_RECENT_TASK_ANIM_FROM_APP = 4;
++        public static final int ENTER_RECENT_TASK_ANIM_FROM_LAUNCHER = 3;
++        public static final int LAUNCH_ANIM_FROM_RECENT = 6;
++        public static final int OUT_RECENT_TASK_ANIM = 5;
++    }
++
++    public static final class SsOperationScene {
++        public static final int TASK_OPERATION_LATENCY = 1;
++        public static final String TASK_OPERATION_LATENCY_DESC = "app_transition_latency";
++    }
++
++    public static final class FaultType {
++        public static final int ACTIVITY_LAUNCH_FROM_LAUNCHER = 1;
++        public static final int ACTIVITY_LAUNCH_WITHIN_APP = 2;
++        public static final int ACTIVITY_RESPOND_WITHIN_APP = 3;
++        FaultType() {}
++    }
++
++    public static final class SideGestureSceneId {
++        public static final int BACK_TO_LAST_ACTIVITY = 1;
++        public static final int BACK_TO_LAUNCHER = 2;
++        SideGestureSceneId() {}
++    }
++
++    public static final class CameraSceneId {
++        public static final int ENTER_PHOTO = 200;
++        public static final int EXIT_PHOTO = 201;
++        CameraSceneId() {}
++    }
++
++    public static final class AppSceneType {
++        public static final int SCENE_TYPE_GFX_FRAME = 2;
++        public static final int SCENE_TYPE_LATENCY = 0;
++        public static final int SCENE_TYPE_SLIDE = 3;
++        public static final int SCENE_TYPE_SS_ANIM = 1;
++        public static boolean isInvalidType(int sceneType) {
++            return sceneType < 0 || sceneType > 2;
++        }
++    }
++
++    public enum SceneIndex {
++        LIST_VIEW_SLIDE(1000), VIDEO_SLIDE(1001), WEBVIEW_SLIDE(1002), FLUTTER_VIEW_SLIDE(1003);
++        int mValue;
++        SceneIndex(int value) { this.mValue = value; }
++        public int getValue() { return this.mValue; }
++    }
++
++    public enum SceneDescription {
++        LIST_VIEW_SLIDE("listview_slide"), VIDEO_SLIDE("video_slide"),
++        WEBVIEW_SLIDE("webView_slide"), FLUTTER_VIEW_SLIDE("flutterView_slide");
++        String mDescription;
++        SceneDescription(String description) { this.mDescription = description; }
++        public String getDescription() { return this.mDescription; }
++    }
++
++    public static final class AppLatencyPolicy {
++        public static final int SCENE_APPEND = 4;
++        public static final int SCENE_BEGIN = 2;
++        public static final int SCENE_END = 8;
++        public static final int SCENE_EXIT = 16;
++        AppLatencyPolicy() {}
++    }
++
++    public static final class SceneInfo {
++        private long mAnimCostThreshold;
++        private long mLatencyThresholdNs;
++        private String mPackageName;
++        private long mPolicy;
++        private int mPreCount;
++        private int mScene;
++        private long mSceneBeginTime;
++        private String mSceneDescription;
++        private int mSceneType;
++        private int mSkippedAnimFrame;
++        private int mSkippedFrame;
++        private long mSkippedFrameThreshold;
++        private int mTransitionSyncId;
++
++        public SceneInfo() {
++            this.mSceneType = -1;
++            this.mScene = -1;
++            this.mAnimCostThreshold = 0L;
++            this.mPreCount = 0;
++            this.mTransitionSyncId = 0;
++        }
++
++        protected SceneInfo(int sceneType, int scene, String sceneDes, long animCostThreshold, int skippedAnimFrame) {
++            this.mSceneType = -1; this.mScene = -1; this.mAnimCostThreshold = 0L;
++            this.mPreCount = 0; this.mTransitionSyncId = 0;
++            this.mSceneType = sceneType; this.mScene = scene;
++            this.mSceneDescription = sceneDes; this.mAnimCostThreshold = animCostThreshold;
++            this.mSkippedAnimFrame = skippedAnimFrame; this.mSceneBeginTime = System.nanoTime();
++        }
++
++        public void initBasicInfo(Context context, int sceneType, int scene, String sceneDes) {
++            if (context != null) this.mPackageName = context.getPackageName();
++            this.mSceneType = sceneType; this.mScene = scene; this.mSceneDescription = sceneDes;
++        }
++
++        public void updateThreshold(long latencyThresholdNs, long animCostThreshold, int skippedAnimFrame, long skippedFrameThreshold, int skippedFrame, long policy) {
++            this.mLatencyThresholdNs = latencyThresholdNs; this.mAnimCostThreshold = animCostThreshold;
++            this.mSkippedAnimFrame = skippedAnimFrame; this.mSkippedFrameThreshold = skippedFrameThreshold;
++            this.mSkippedFrame = skippedFrame; this.mPolicy = policy;
++        }
++
++        public void reset() {
++            this.mScene = -1; this.mSceneBeginTime = 0L; this.mSceneDescription = null;
++            this.mLatencyThresholdNs = 0L; this.mAnimCostThreshold = 0L; this.mSkippedAnimFrame = 0;
++            this.mSkippedFrameThreshold = 0L; this.mSkippedFrame = 0; this.mPreCount = 0;
++            this.mTransitionSyncId = 0; this.mPolicy = 0L;
++        }
++
++        public void resetSceneType() { this.mSceneType = -1; }
++        public String getPackageName() { return this.mPackageName; }
++        public void setPackageName(String mPackageName) { this.mPackageName = mPackageName; }
++        public void updateSceneBeginTime() { this.mSceneBeginTime = System.nanoTime(); }
++        public void setLatencyThresholdMs(long latencyThresholdMs) { this.mLatencyThresholdNs = 1000000 * latencyThresholdMs; }
++        public void setPolicy(long policy) { this.mPolicy = policy; }
++        public void setAnimCostThreshold(long mAnimCostThreshold) { this.mAnimCostThreshold = mAnimCostThreshold; }
++        public synchronized int getSceneType() { return this.mSceneType; }
++        public synchronized int getScene() { return this.mScene; }
++        public synchronized long getSceneBeginTime() { return this.mSceneBeginTime; }
++        public synchronized String getSceneDescription() { return this.mSceneDescription; }
++        public synchronized long getLatencyThresholdNs() { return this.mLatencyThresholdNs; }
++        public synchronized long getAnimCostThreshold() { return this.mAnimCostThreshold; }
++        public synchronized int getSkippedAnimFrame() { return this.mSkippedAnimFrame; }
++        public synchronized long getSkippedFrameThreshold() { return this.mSkippedFrameThreshold; }
++        public synchronized int getSkippedFrame() { return this.mSkippedFrame; }
++        public void addPreCount() { this.mPreCount++; }
++        public int getPreCount() { return this.mPreCount; }
++        public void resetPreCount() { this.mPreCount = 0; }
++        public void setTransitionSyncId(int syncId) { this.mTransitionSyncId = syncId; }
++        public int getTransitionSyncId() { return this.mTransitionSyncId; }
++        public synchronized long getScenePolicy() { return this.mPolicy; }
++    }
++
++    default OplusFeatureList.OplusIndex index() { return OplusFeatureList.OplusIndex.IJankManager; }
++    default IOplusCommonFeature getDefault() { return DEFAULT; }
++    default void updateAppSceneAndAction(String packageName, int scene, int action) {}
++    default int getAppScene(String packageName) { return -1; }
++    default int getAppAction(String packageName) { return -1; }
++    default void latencySceneBegin(Context context, int scene, String sceneDes, long latencyThresholdMs) {}
++    default void latencySceneBegin(Context context, SceneInfo sceneInfo) {}
++    default void latencySceneEnd(Context context, int scene, ArrayList<String> latencyInfo) {}
++    default void asyncLatencySceneBegin(SceneInfo sceneInfo) {}
++    default void asyncLatencySceneEnd(String packageName, int scene, int policy, String appendMessage) {}
++    default void updateFaultThresholdMs(String packageName, int faultType, int threshold) {}
++    default void ssAnimSceneBegin(int scene, String sceneDes, int skippedFrameNum, long duration) {}
++    default void ssAnimSceneEnd(int scene, boolean normal) {}
++    default void gfxSceneBegin(Context context, int scene, String sceneDes, long policy) {}
++    default void gfxSceneBegin(Context context, SceneInfo sceneInfo) {}
++    default void gfxSceneEnd(Context context, int scene) {}
++    default int getSceneType() { return -1; }
++    default int getScene() { return -1; }
++    default long getSceneBeginTime() { return -1L; }
++    default String getSceneDescription() { return null; }
++    default long getLatencyThresholdNs() { return -1L; }
++    default long getAnimCostThreshold() { return -1L; }
++    default int getSkippedAnimFrame() { return -1; }
++    default long getSkippedFrameThreshold() { return -1L; }
++    default int getSkippedFrame() { return -1; }
++    default long getScenePolicy() { return -1L; }
++    default boolean isSceneEnabled(int sceneType, int scene) { return false; }
++    default void onAnimationUpdate() {}
++    default void notifyActivityStarted(String packageName, String activityName, long longVersionCode) {}
++    default void notifyAddStartingWindow(String pkgName, String activityName, String launchFromPkg, int reasonCode) {}
++    default void startActivity(String pkgName, String activityName) {}
++    default void finishDrawing(String pkgName, String activityName) {}
++    default void startRemoteAnimation(String pkgName, String activityName) {}
++    default void requestStartTransition(int type, int scene, String sceneDes, long latencyThresholdMs, int syncId, boolean hasRemoteTransition) {}
++    default void requestEndTransition(int syncId) {}
++    default void slideSceneBegin(Context context, SceneInfo sceneInfo) {}
++    default void slideSceneEnd(Context context, int scene) {}
++    default int getSlideSceneType() { return -1; }
++    default int getSlideScene() { return -1; }
++    default long getSlideScenePolicy() { return -1L; }
++    default long getSlideSceneBeginTime() { return -1L; }
++    default int getSlideSceneSkippedFrame() { return -1; }
++    default long getSlideSceneThreshold() { return -1L; }
++}
+diff --git a/oplus-fwk/src/com/oplus/view/JankManager.java b/oplus-fwk/src/com/oplus/view/JankManager.java
+new file mode 100644
+index 0000000..64f8bfc
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/view/JankManager.java
+@@ -0,0 +1,140 @@
++package com.oplus.view;
++
++import android.content.Context;
++import java.util.ArrayList;
++
++/* Stub implementation - all OxygenOS-specific telemetry removed */
++public class JankManager implements IJankManager {
++
++    private static JankManager sInstance;
++
++    public static JankManager getInstance() {
++        if (sInstance == null) {
++            sInstance = new JankManager();
++        }
++        return sInstance;
++    }
++
++    @Override
++    public void updateAppSceneAndAction(String packageName, int scene, int action) {}
++
++    @Override
++    public int getAppScene(String packageName) { return -1; }
++
++    @Override
++    public int getAppAction(String packageName) { return -1; }
++
++    @Override
++    public void latencySceneBegin(Context context, int scene, String sceneDes, long latencyThresholdMs) {}
++
++    @Override
++    public void latencySceneBegin(Context context, IJankManager.SceneInfo sceneInfo) {}
++
++    @Override
++    public void latencySceneEnd(Context context, int scene, ArrayList<String> latencyInfo) {}
++
++    @Override
++    public void asyncLatencySceneBegin(IJankManager.SceneInfo sceneInfo) {}
++
++    @Override
++    public void asyncLatencySceneEnd(String packageName, int scene, int policy, String appendMessage) {}
++
++    @Override
++    public void updateFaultThresholdMs(String packageName, int faultType, int threshold) {}
++
++    @Override
++    public void ssAnimSceneBegin(int scene, String sceneDes, int skippedFrameNum, long duration) {}
++
++    @Override
++    public void ssAnimSceneEnd(int scene, boolean normal) {}
++
++    @Override
++    public void gfxSceneBegin(Context context, int scene, String sceneDes, long policy) {}
++
++    @Override
++    public void gfxSceneBegin(Context context, IJankManager.SceneInfo sceneInfo) {}
++
++    @Override
++    public void gfxSceneEnd(Context context, int scene) {}
++
++    @Override
++    public int getSceneType() { return -1; }
++
++    @Override
++    public int getScene() { return -1; }
++
++    @Override
++    public long getSceneBeginTime() { return -1L; }
++
++    @Override
++    public String getSceneDescription() { return null; }
++
++    @Override
++    public long getLatencyThresholdNs() { return -1L; }
++
++    @Override
++    public long getAnimCostThreshold() { return -1L; }
++
++    @Override
++    public int getSkippedAnimFrame() { return -1; }
++
++    @Override
++    public long getSkippedFrameThreshold() { return -1L; }
++
++    @Override
++    public int getSkippedFrame() { return -1; }
++
++    @Override
++    public long getScenePolicy() { return -1L; }
++
++    @Override
++    public boolean isSceneEnabled(int sceneType, int scene) { return false; }
++
++    @Override
++    public void onAnimationUpdate() {}
++
++    @Override
++    public void notifyActivityStarted(String packageName, String activityName, long longVersionCode) {}
++
++    @Override
++    public void notifyAddStartingWindow(String pkgName, String activityName, String launchFromPkg, int reasonCode) {}
++
++    @Override
++    public void startActivity(String pkgName, String activityName) {}
++
++    @Override
++    public void finishDrawing(String pkgName, String activityName) {}
++
++    @Override
++    public void startRemoteAnimation(String pkgName, String activityName) {}
++
++    @Override
++    public void requestStartTransition(int type, int scene, String sceneDes, long latencyThresholdMs, int syncId, boolean hasRemoteTransition) {}
++
++    @Override
++    public void requestEndTransition(int syncId) {}
++
++    @Override
++    public void slideSceneBegin(Context context, IJankManager.SceneInfo sceneInfo) {}
++
++    @Override
++    public void slideSceneEnd(Context context, int scene) {}
++
++    @Override
++    public int getSlideSceneType() { return -1; }
++
++    @Override
++    public int getSlideScene() { return -1; }
++
++    @Override
++    public long getSlideScenePolicy() { return -1L; }
++
++    @Override
++    public long getSlideSceneBeginTime() { return -1L; }
++
++    @Override
++    public int getSlideSceneSkippedFrame() { return -1; }
++
++    @Override
++    public long getSlideSceneThreshold() { return -1L; }
++}
+diff --git a/oplus-fwk/src/com/oplus/view/OplusEdrUtils.java b/oplus-fwk/src/com/oplus/view/OplusEdrUtils.java
+new file mode 100644
+index 0000000..728e4e8
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/view/OplusEdrUtils.java
+@@ -0,0 +1,112 @@
++package com.oplus.view;
++
++import android.graphics.Bitmap;
++import android.graphics.Rect;
++import android.os.SystemProperties;
++import android.util.Size;
++import android.view.SurfaceControl;
++import android.view.SurfaceView;
++import android.view.View;
++
++/* Stub implementation - OxygenOS SurfaceControl EDR extensions not available */
++public final class OplusEdrUtils {
++    public static final int DOLBY_OFF_WITHOUT_ANIMATION = 131073;
++    public static final int DOLBY_OFF_WITH_ANIMATION = 131072;
++    public static final int DOLBY_ON_WITHOUT_ANIMATION = 131329;
++    public static final int DOLBY_ON_WITH_ANIMATION = 131328;
++    public static final int EDR_FEATURE_DOLBY_VERSION = 1;
++    public static final int EDR_FEATURE_HDR_VERSION = 5;
++    public static final int EDR_FEATURE_LOCALHDR_VERSION = 0;
++    public static final int LOCALHDR_OFF_WITHOUT_ANIMATION = 65536;
++    public static final int LOCALHDR_OFF_WITH_ANIMATION = 65537;
++    public static final int LOCALHDR_ON_WITHOUT_ANIMATION = 65792;
++    public static final int LOCALHDR_ON_WITH_ANIMATION = 65793;
++    public static final int SIZE_DISPLAY_MAX = 16;
++    public static final int SIZE_POSITION_MAX = 2;
++
++    public static class OplusEdrParameters {
++        public int[] displayPosition;
++        public Rect displayRect;
++        public float[] displayTransform;
++        public int imageRotation;
++    }
++
++    public static class OplusSkGainmapInfo {
++        public static final int SIZE_RGBA_MAX = 4;
++        public int fType = 0;
++        public int fBaseImageType = 0;
++        public float scale = 1.0f;
++        public float fDisplayRatioSdr = 1.0f;
++        public float fDisplayRatioHdr = 2.0f;
++        public float[] fEpsilonSdr = {0.0f, 0.0f, 0.0f, 1.0f};
++        public float[] fEpsilonHdr = {0.0f, 0.0f, 0.0f, 1.0f};
++        public float[] fGainmapRatioMin = {1.0f, 1.0f, 1.0f, 1.0f};
++        public float[] fGainmapRatioMax = {2.0f, 2.0f, 2.0f, 1.0f};
++        public float[] fGainmapGamma = {1.0f, 1.0f, 1.0f, 1.0f};
++    }
++
++    public static SurfaceControl getSurfaceControl(View view) {
++        return null;
++    }
++
++    public static SurfaceControl getBlastSurfaceControl(SurfaceView view) {
++        return null;
++    }
++
++    public static int getLocalHdrVersion() {
++        return SystemProperties.getInt("persist.sys.feature.localhdr_version", -1);
++    }
++
++    public static boolean getLocalHdrSubDisplaySupport() {
++        return false;
++    }
++
++    public static int getDolbyEdrVersion() {
++        return SystemProperties.getInt("persist.sys.feature.dolby_vision_app", -1);
++    }
++
++    public static int getEdrFeatureVersion(int feature) {
++        switch (feature) {
++            case 0: return SystemProperties.getInt("persist.sys.feature.localhdr_version", -1);
++            case 1: return SystemProperties.getInt("persist.sys.feature.dolby_vision_app", -1);
++            case 5: return SystemProperties.getInt("persist.sys.feature.hdr_vision_app", -1);
++            default: return -1;
++        }
++    }
++
++    public static boolean setEdrFlags(SurfaceControl sc, SurfaceControl.Transaction transaction, int flags) {
++        return false;
++    }
++
++    public static boolean setEdrImageSize(SurfaceControl sc, SurfaceControl.Transaction transaction, Size imageSize, int index) {
++        return false;
++    }
++
++    public static boolean setEdrImageMetadata(SurfaceControl sc, SurfaceControl.Transaction transaction, byte[] metadata, int index) {
++        return false;
++    }
++
++    public static boolean setEdrAuxiliaryImage(SurfaceControl sc, SurfaceControl.Transaction transaction, Bitmap bitmap, int index) {
++        return false;
++    }
++
++    public static boolean setEdrViewTransform(SurfaceControl sc, SurfaceControl.Transaction transaction, OplusEdrParameters para, int index) {
++        return false;
++    }
++
++    public static boolean isUHDRSupport() {
++        return SystemProperties.getBoolean("persist.sys.feature.uhdr.support", false);
++    }
++
++    public static boolean setEdrGainmapInfo(SurfaceControl sc, SurfaceControl.Transaction transaction, OplusSkGainmapInfo info, int index) {
++        return false;
++    }
++
++    public static boolean setEdrAnimDuration(SurfaceControl sc, SurfaceControl.Transaction transaction, int enterDuration, int exitDuration) {
++        return false;
++    }
++
++    public static boolean setEdrSdrRatio(SurfaceControl sc, SurfaceControl.Transaction transaction, float edrSdrRatio) {
++        return false;
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/view/OplusView.java b/oplus-fwk/src/com/oplus/view/OplusView.java
+new file mode 100644
+index 0000000..d411356
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/view/OplusView.java
+@@ -0,0 +1,36 @@
++package com.oplus.view;
++
++import android.os.Bundle;
++import android.view.View;
++
++/* Stub implementation - IViewWrapper/IViewExt not available in AOSP/LineageOS */
++public class OplusView {
++    private final View mView;
++
++    public OplusView(View view) {
++        this.mView = view;
++    }
++
++    public boolean canReceivePointerEvents() {
++        return false;
++    }
++
++    public boolean setFrame(int left, int top, int right, int bottom) {
++        return false;
++    }
++
++    public void damageInParent() {}
++
++    public void setOverrideLightSourceGeometry(float lightX, float lightY, float lightZ,
++            float lightRadius, float blurRadius) {}
++
++    public boolean updateDragShadowBadge(View.DragShadowBuilder shadowBuilder, float dx, float dy,
++            String content, int status, Bundle bundle) {
++        return false;
++    }
++
++    public boolean updateDragShadowBadge(View.DragShadowBuilder shadowBuilder, float dx, float dy,
++            String content, int status, Runnable endAction, Bundle bundle) {
++        return false;
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/view/ViewRootManager.java b/oplus-fwk/src/com/oplus/view/ViewRootManager.java
+new file mode 100644
+index 0000000..6fee0e6
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/view/ViewRootManager.java
+@@ -0,0 +1,66 @@
++package com.oplus.view;
++
++import android.graphics.drawable.Drawable;
++import android.util.Log;
++import android.view.View;
++import android.view.ViewRootImpl;
++import com.android.internal.graphics.drawable.BackgroundBlurDrawable;
++
++/* Stub implementation - OplusBlurParam not available in AOSP/LineageOS */
++public class ViewRootManager {
++    private static final String TAG = "ViewRootManager";
++    private BackgroundBlurDrawable mBackgroundBlurDrawable;
++
++    public ViewRootManager(View view) {
++        this.mBackgroundBlurDrawable = null;
++        ViewRootImpl viewRootImpl = view.getViewRootImpl();
++        if (viewRootImpl != null) {
++            this.mBackgroundBlurDrawable = viewRootImpl.createBackgroundBlurDrawable();
++        } else {
++            Log.d(TAG, "viewRootImpl is null return null");
++        }
++    }
++
++    public Drawable getBackgroundBlurDrawable() {
++        return this.mBackgroundBlurDrawable;
++    }
++
++    public void setBlurRadius(int blurRadius) {
++        if (this.mBackgroundBlurDrawable == null) {
++            Log.d(TAG, "BackgroundBlurDrawable is null return null");
++            return;
++        }
++        this.mBackgroundBlurDrawable.setBlurRadius(blurRadius);
++    }
++
++    public void setCornerRadius(float cornerRadius) {
++        if (this.mBackgroundBlurDrawable == null) {
++            Log.d(TAG, "BackgroundBlurDrawable is null return null");
++            return;
++        }
++        this.mBackgroundBlurDrawable.setCornerRadius(cornerRadius);
++    }
++
++    public void setCornerRadius(float cornerRadiusTL, float cornerRadiusTR,
++            float cornerRadiusBL, float cornerRadiusBR) {
++        if (this.mBackgroundBlurDrawable == null) {
++            Log.d(TAG, "BackgroundBlurDrawable is null return null by four");
++            return;
++        }
++        this.mBackgroundBlurDrawable.setCornerRadius(
++                cornerRadiusTL, cornerRadiusTR, cornerRadiusBL, cornerRadiusBR);
++    }
++
++    public void setColor(int color) {
++        if (this.mBackgroundBlurDrawable == null) {
++            Log.d(TAG, "BackgroundBlurDrawable is null return null");
++            return;
++        }
++        this.mBackgroundBlurDrawable.setColor(color);
++    }
++
++    /** Stub - OplusBlurParam not available on AOSP/LineageOS */
++    public void setBlurParams(Object params) {
++        // no-op
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/wrapper/graphics/HardwareRenderer.java b/oplus-fwk/src/com/oplus/wrapper/graphics/HardwareRenderer.java
+new file mode 100644
+index 0000000..2b30243
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/wrapper/graphics/HardwareRenderer.java
+@@ -0,0 +1,18 @@
++package com.oplus.wrapper.graphics;
++
++import android.graphics.Bitmap;
++
++/* loaded from: classes.dex */
++public class HardwareRenderer {
++
++    public interface FrameDrawingCallback {
++        void onFrameDraw(long j);
++    }
++
++    private HardwareRenderer() {
++    }
++
++    public static Bitmap createHardwareBitmap(android.graphics.RenderNode node, int width, int height) {
++        return android.graphics.HardwareRenderer.createHardwareBitmap(node, width, height);
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/wrapper/hardware/devicestate/DeviceState.java b/oplus-fwk/src/com/oplus/wrapper/hardware/devicestate/DeviceState.java
+new file mode 100644
+index 0000000..bb72286
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/wrapper/hardware/devicestate/DeviceState.java
+@@ -0,0 +1,19 @@
++package com.oplus.wrapper.hardware.devicestate;
++
++/* loaded from: classes.dex */
++public final class DeviceState {
++    private android.hardware.devicestate.DeviceState mInnerDeviceState;
++
++    DeviceState(android.hardware.devicestate.DeviceState deviceState) {
++        this.mInnerDeviceState = null;
++        this.mInnerDeviceState = deviceState;
++    }
++
++    public int getIdentifier() {
++        return this.mInnerDeviceState.getIdentifier();
++    }
++
++    android.hardware.devicestate.DeviceState getDeviceState() {
++        return this.mInnerDeviceState;
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/wrapper/hardware/devicestate/DeviceStateManager.java b/oplus-fwk/src/com/oplus/wrapper/hardware/devicestate/DeviceStateManager.java
+new file mode 100644
+index 0000000..667bba8
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/wrapper/hardware/devicestate/DeviceStateManager.java
+@@ -0,0 +1,124 @@
++package com.oplus.wrapper.hardware.devicestate;
++
++import android.content.Context;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.Executor;
++import java.util.function.Consumer;
++
++public class DeviceStateManager {
++    private final Map<DeviceStateCallback, DeviceStateCallbackProxy> mCallbackProxyCache = new ConcurrentHashMap(0);
++    private final android.hardware.devicestate.DeviceStateManager mDeviceStateManager;
++
++    public DeviceStateManager(Context context) {
++        this.mDeviceStateManager = (android.hardware.devicestate.DeviceStateManager) context.getSystemService(android.hardware.devicestate.DeviceStateManager.class);
++    }
++
++    public void registerCallback(Executor executor, DeviceStateCallback callback) {
++        if (callback == null) {
++            return;
++        }
++        DeviceStateCallbackProxy stateCallbackProxy = this.mCallbackProxyCache.get(callback);
++        if (stateCallbackProxy == null) {
++            stateCallbackProxy = new DeviceStateCallbackProxy(callback);
++            this.mCallbackProxyCache.put(callback, stateCallbackProxy);
++        }
++        this.mDeviceStateManager.registerCallback(executor, stateCallbackProxy.getDeviceStateCallback());
++    }
++
++    public void unregisterCallback(DeviceStateCallback callback) {
++        DeviceStateCallbackProxy stateCallbackProxy;
++        if (callback == null || (stateCallbackProxy = this.mCallbackProxyCache.get(callback)) == null) {
++            return;
++        }
++        this.mDeviceStateManager.unregisterCallback(stateCallbackProxy.getDeviceStateCallback());
++        this.mCallbackProxyCache.remove(callback);
++    }
++
++    public interface DeviceStateCallback {
++        void onDeviceStateChanged(DeviceState deviceState);
++
++        @Deprecated
++        void onStateChanged(int i);
++
++        @Deprecated
++        default void onSupportedStatesChanged(int[] supportedStates) {
++        }
++
++        @Deprecated
++        default void onBaseStateChanged(int state) {
++        }
++
++        default void onSupportedStatesChanged(List<DeviceState> supportedStates) {
++        }
++    }
++
++    public static class FoldStateListener implements DeviceStateCallback {
++        private final android.hardware.devicestate.DeviceStateManager.FoldStateListener mFoldStateListener;
++
++        public FoldStateListener(Context context, Consumer<Boolean> listener) {
++            this.mFoldStateListener = new android.hardware.devicestate.DeviceStateManager.FoldStateListener(context, listener);
++        }
++
++        @Override
++        @Deprecated
++        public void onSupportedStatesChanged(int[] supportedStates) {
++        }
++
++        @Override
++        @Deprecated
++        public void onBaseStateChanged(int state) {
++        }
++
++        @Override
++        @Deprecated
++        public void onStateChanged(int state) {
++        }
++
++        @Override
++        public void onDeviceStateChanged(DeviceState deviceState) {
++            this.mFoldStateListener.onDeviceStateChanged(deviceState.getDeviceState());
++        }
++
++        @Override
++        public void onSupportedStatesChanged(List<DeviceState> supportedStates) {
++            List<android.hardware.devicestate.DeviceState> supportedDeviceStates = new ArrayList<>();
++            for (DeviceState ostate : supportedStates) {
++                supportedDeviceStates.add(ostate.getDeviceState());
++            }
++            this.mFoldStateListener.onSupportedStatesChanged(supportedDeviceStates);
++        }
++
++        public Boolean getFolded() {
++            return this.mFoldStateListener.getFolded();
++        }
++    }
++
++    private static class DeviceStateCallbackProxy {
++        private final android.hardware.devicestate.DeviceStateManager.DeviceStateCallback mDeviceStateCallback;
++
++        private DeviceStateCallbackProxy(final DeviceStateCallback deviceStateCallback) {
++            this.mDeviceStateCallback = new android.hardware.devicestate.DeviceStateManager.DeviceStateCallback() {
++                @Override
++                public void onDeviceStateChanged(android.hardware.devicestate.DeviceState state) {
++                    deviceStateCallback.onDeviceStateChanged(new DeviceState(state));
++                }
++
++                @Override
++                public void onSupportedStatesChanged(List<android.hardware.devicestate.DeviceState> supportedStates) {
++                    List<DeviceState> supportedODeviceStates = new ArrayList<>();
++                    for (android.hardware.devicestate.DeviceState state : supportedStates) {
++                        supportedODeviceStates.add(new DeviceState(state));
++                    }
++                    deviceStateCallback.onSupportedStatesChanged(supportedODeviceStates);
++                }
++            };
++        }
++
++        public android.hardware.devicestate.DeviceStateManager.DeviceStateCallback getDeviceStateCallback() {
++            return this.mDeviceStateCallback;
++        }
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/wrapper/os/Trace.java b/oplus-fwk/src/com/oplus/wrapper/os/Trace.java
+new file mode 100644
+index 0000000..3fee6a9
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/wrapper/os/Trace.java
+@@ -0,0 +1,45 @@
++package com.oplus.wrapper.os;
++
++/* loaded from: classes2.dex */
++public class Trace {
++    public static final long TRACE_TAG_GRAPHICS = getTraceTagGraphics();
++    public static final long TRACE_TAG_HAL = getTraceTagHal();
++    public static final long TRACE_TAG_ACTIVITY_MANAGER = getTraceTagActivityManager();
++    public static final long TRACE_TAG_VIEW = getTraceTagView();
++
++    private static long getTraceTagGraphics() {
++        return 2L;
++    }
++
++    private static final long getTraceTagHal() {
++        return 4L;
++    }
++
++    private static final long getTraceTagActivityManager() {
++        return 64L;
++    }
++
++    private static final long getTraceTagView() {
++        return 8L;
++    }
++
++    public static void traceBegin(long traceTag, String methodName) {
++        android.os.Trace.traceBegin(traceTag, methodName);
++    }
++
++    public static void traceEnd(long traceTag) {
++        android.os.Trace.traceEnd(traceTag);
++    }
++
++    public static void asyncTraceBegin(long traceTag, String methodName, int cookie) {
++        android.os.Trace.asyncTraceBegin(traceTag, methodName, cookie);
++    }
++
++    public static void asyncTraceEnd(long traceTag, String methodName, int cookie) {
++        android.os.Trace.asyncTraceEnd(traceTag, methodName, cookie);
++    }
++
++    public static void traceCounter(long traceTag, String counterName, int counterValue) {
++        android.os.Trace.traceCounter(traceTag, counterName, counterValue);
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/wrapper/os/UserHandle.java b/oplus-fwk/src/com/oplus/wrapper/os/UserHandle.java
+new file mode 100644
+index 0000000..9929d0a
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/wrapper/os/UserHandle.java
+@@ -0,0 +1,101 @@
++package com.oplus.wrapper.os;
++
++/* loaded from: classes2.dex */
++public class UserHandle {
++    private final android.os.UserHandle mUserHandle;
++    public static final android.os.UserHandle CURRENT = getCurrent();
++    public static final android.os.UserHandle OWNER = getOwner();
++    public static final int USER_CURRENT = getUserCurrent();
++    public static final int USER_SYSTEM = getUserSystem();
++    public static final android.os.UserHandle SYSTEM = getSystem();
++    public static final int USER_ALL = getUserAll();
++    public static final int USER_NULL = getUserNull();
++
++    public UserHandle(android.os.UserHandle userHandle) {
++        this.mUserHandle = userHandle;
++    }
++
++    public UserHandle(int userId) {
++        this.mUserHandle = new android.os.UserHandle(userId);
++    }
++
++    public static android.os.UserHandle create(int userId) {
++        return new android.os.UserHandle(userId);
++    }
++
++    private static android.os.UserHandle getCurrent() {
++        return android.os.UserHandle.CURRENT;
++    }
++
++    private static android.os.UserHandle getOwner() {
++        return android.os.UserHandle.OWNER;
++    }
++
++    private static int getUserCurrent() {
++        return -2;
++    }
++
++    private static int getUserSystem() {
++        return 0;
++    }
++
++    private static android.os.UserHandle getSystem() {
++        return android.os.UserHandle.SYSTEM;
++    }
++
++    private static int getUserAll() {
++        return -1;
++    }
++
++    private static int getUserNull() {
++        return -10000;
++    }
++
++    public static int getIdentifier(android.os.UserHandle target) {
++        return target.getIdentifier();
++    }
++
++    public static boolean isSystem(android.os.UserHandle target) {
++        return target.isSystem();
++    }
++
++    public int getIdentifier() {
++        return this.mUserHandle.getIdentifier();
++    }
++
++    public android.os.UserHandle getUserHandle() {
++        return this.mUserHandle;
++    }
++
++    public boolean isSystem() {
++        return this.mUserHandle.isSystem();
++    }
++
++    public static int getUserId(int uid) {
++        return android.os.UserHandle.getUserId(uid);
++    }
++
++    public static int myUserId() {
++        return android.os.UserHandle.myUserId();
++    }
++
++    public static int getAppId(int uid) {
++        return android.os.UserHandle.getAppId(uid);
++    }
++
++    public static int getUid(int userId, int appId) {
++        return android.os.UserHandle.getUid(userId, appId);
++    }
++
++    public static android.os.UserHandle of(int userId) {
++        return android.os.UserHandle.of(userId);
++    }
++
++    public static boolean isApp(int uid) {
++        return android.os.UserHandle.isApp(uid);
++    }
++
++    public static int getCallingUserId() {
++        return android.os.UserHandle.getCallingUserId();
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/wrapper/view/View.java b/oplus-fwk/src/com/oplus/wrapper/view/View.java
+new file mode 100644
+index 0000000..b9f6bc7
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/wrapper/view/View.java
+@@ -0,0 +1,164 @@
++package com.oplus.wrapper.view;
++
++import android.content.res.Configuration;
++import android.graphics.Matrix;
++import android.graphics.Rect;
++import android.view.accessibility.AccessibilityNodeInfo;
++
++/* loaded from: classes2.dex */
++public class View {
++    public static final int DRAG_FLAG_REQUEST_SURFACE_FOR_RETURN_ANIMATION = getDragFlagRequestSurfaceForReturnAnimation();
++    private final android.view.View mView;
++
++    public static boolean isVisibleToUser(android.view.View target) {
++        return target.isVisibleToUser();
++    }
++
++    public static boolean requestAccessibilityFocus(android.view.View target) {
++        return target.requestAccessibilityFocus();
++    }
++
++    public static boolean isLayoutRtl(android.view.View target) {
++        return target.isLayoutRtl();
++    }
++
++    public static ViewRootImpl getViewRootImpl(android.view.View target) {
++        android.view.ViewRootImpl viewRootImpl = target.getViewRootImpl();
++        if (viewRootImpl == null) {
++            return null;
++        }
++        return new ViewRootImpl(viewRootImpl);
++    }
++
++    public static void notifyViewAccessibilityStateChangedIfNeeded(android.view.View target, int changeType) {
++        target.notifyViewAccessibilityStateChangedIfNeeded(changeType);
++    }
++
++    public static void onMovedToDisplay(android.view.View target, int displayId, Configuration config) {
++        target.onMovedToDisplay(displayId, config);
++    }
++
++    public static void clearAccessibilityFocus(android.view.View target) {
++        target.clearAccessibilityFocus();
++    }
++
++    public static final boolean hasIdentityMatrix(android.view.View target) {
++        return target.hasIdentityMatrix();
++    }
++
++    public static final Matrix getInverseMatrix(android.view.View target) {
++        return target.getInverseMatrix();
++    }
++
++    public static int[] getLocationOnScreen(android.view.View target) {
++        return target.getLocationOnScreen();
++    }
++
++    public static int getPrivateFlags(android.view.View target) {
++        return target.mPrivateFlags;
++    }
++
++    public static void setPrivateFlags(android.view.View target, int privateFlags) {
++        target.mPrivateFlags = privateFlags;
++    }
++
++    public static boolean isForegroundInsidePadding(android.view.View target) {
++        return target.isForegroundInsidePadding();
++    }
++
++    public static void getBoundsOnScreen(android.view.View target, Rect outRect) {
++        target.getBoundsOnScreen(outRect);
++    }
++
++    public static AccessibilityNodeInfo createAccessibilityNodeInfo(android.view.View target) {
++        return target.createAccessibilityNodeInfo();
++    }
++
++    public View(android.view.View view) {
++        this.mView = view;
++    }
++
++    public boolean isVisibleToUser() {
++        return this.mView.isVisibleToUser();
++    }
++
++    public boolean requestAccessibilityFocus() {
++        return this.mView.requestAccessibilityFocus();
++    }
++
++    public boolean isLayoutRtl() {
++        return this.mView.isLayoutRtl();
++    }
++
++    public ViewRootImpl getViewRootImpl() {
++        android.view.ViewRootImpl viewRootImpl = this.mView.getViewRootImpl();
++        if (viewRootImpl == null) {
++            return null;
++        }
++        return new ViewRootImpl(viewRootImpl);
++    }
++
++    public void notifyViewAccessibilityStateChangedIfNeeded(int changeType) {
++        this.mView.notifyViewAccessibilityStateChangedIfNeeded(changeType);
++    }
++
++    public void onMovedToDisplay(int displayId, Configuration config) {
++        this.mView.onMovedToDisplay(displayId, config);
++    }
++
++    public void clearAccessibilityFocus() {
++        this.mView.clearAccessibilityFocus();
++    }
++
++    public final boolean hasIdentityMatrix() {
++        return this.mView.hasIdentityMatrix();
++    }
++
++    public final Matrix getInverseMatrix() {
++        return this.mView.getInverseMatrix();
++    }
++
++    public int[] getLocationOnScreen() {
++        return this.mView.getLocationOnScreen();
++    }
++
++    public int getPrivateFlags() {
++        return this.mView.mPrivateFlags;
++    }
++
++    public void setPrivateFlags(int privateFlags) {
++        this.mView.mPrivateFlags = privateFlags;
++    }
++
++    public boolean isForegroundInsidePadding() {
++        return this.mView.isForegroundInsidePadding();
++    }
++
++    private static int getDragFlagRequestSurfaceForReturnAnimation() {
++        return 2048;
++    }
++
++    public void getBoundsOnScreen(Rect outRect) {
++        this.mView.getBoundsOnScreen(outRect);
++    }
++
++    public AccessibilityNodeInfo createAccessibilityNodeInfo() {
++        return this.mView.createAccessibilityNodeInfo();
++    }
++
++    public static class AccessibilityDelegate {
++        private final View.AccessibilityDelegate mAccessibilityDelegate;
++
++        public static AccessibilityNodeInfo createAccessibilityNodeInfo(View.AccessibilityDelegate target, android.view.View host) {
++            return target.createAccessibilityNodeInfo(host);
++        }
++
++        public AccessibilityDelegate(View.AccessibilityDelegate accessibilityDelegate) {
++            this.mAccessibilityDelegate = accessibilityDelegate;
++        }
++
++        public AccessibilityNodeInfo createAccessibilityNodeInfo(android.view.View host) {
++            return this.mAccessibilityDelegate.createAccessibilityNodeInfo(host);
++        }
++    }
++}
+diff --git a/oplus-fwk/src/com/oplus/wrapper/view/ViewRootImpl.java b/oplus-fwk/src/com/oplus/wrapper/view/ViewRootImpl.java
+new file mode 100644
+index 0000000..101c8c9
+--- /dev/null
++++ b/oplus-fwk/src/com/oplus/wrapper/view/ViewRootImpl.java
+@@ -0,0 +1,118 @@
++package com.oplus.wrapper.view;
++
++import android.graphics.HardwareRenderer;
++import android.graphics.drawable.Drawable;
++import android.os.Bundle;
++import android.util.Log;
++import android.view.SurfaceControl;
++import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
++
++public class ViewRootImpl {
++    private static final String TAG = "ViewRootImpl";
++    private final Map<SurfaceChangedCallback, android.view.ViewRootImpl.SurfaceChangedCallback> mCallBackMap = new ConcurrentHashMap();
++    private final android.view.ViewRootImpl mViewRootImpl;
++
++    public interface SurfaceChangedCallback {
++        void surfaceCreated(SurfaceControl.Transaction transaction);
++
++        void surfaceDestroyed();
++
++        void surfaceReplaced(SurfaceControl.Transaction transaction);
++    }
++
++    ViewRootImpl(android.view.ViewRootImpl viewRoot) {
++        this.mViewRootImpl = viewRoot;
++    }
++
++    public void addSurfaceChangedCallback(final SurfaceChangedCallback changedCallback) {
++        if (changedCallback == null) {
++            return;
++        }
++        SurfaceChangedCallbackProxy proxy = new SurfaceChangedCallbackProxy(changedCallback);
++        this.mCallBackMap.put(changedCallback, proxy);
++        this.mViewRootImpl.addSurfaceChangedCallback(proxy);
++    }
++
++    public void removeSurfaceChangedCallback(SurfaceChangedCallback changedCallback) {
++        if (changedCallback == null) {
++            Log.w(TAG, "removeSurfaceChangedCallback SurfaceChangedCallback is null");
++            return;
++        }
++        android.view.ViewRootImpl.SurfaceChangedCallback proxy = this.mCallBackMap.get(changedCallback);
++        if (proxy == null) {
++            return;
++        }
++        this.mViewRootImpl.removeSurfaceChangedCallback(proxy);
++        this.mCallBackMap.remove(changedCallback);
++    }
++
++    public Drawable createBackgroundBlurDrawable() {
++        return this.mViewRootImpl.createBackgroundBlurDrawable();
++    }
++
++    public void mergeWithNextTransaction(SurfaceControl.Transaction t, long frameNumber) {
++        this.mViewRootImpl.mergeWithNextTransaction(t, frameNumber);
++    }
++
++    public android.view.SurfaceControl getSurfaceControl() {
++        return this.mViewRootImpl.getSurfaceControl();
++    }
++
++    public android.view.View getView() {
++        if (this.mViewRootImpl == null) {
++            return null;
++        }
++        return this.mViewRootImpl.getView();
++    }
++
++    public void registerRtFrameCallback(HardwareRenderer.FrameDrawingCallback callback) {
++        FrameDrawingCallbackImpl frameDrawingCallback = new FrameDrawingCallbackImpl(callback);
++        this.mViewRootImpl.registerRtFrameCallback(frameDrawingCallback);
++    }
++
++    public static void setCustomVriFlags(android.view.ViewRootImpl vri, Bundle bundle) {
++        // Oplus extension not available on custom ROM, no-op
++    }
++
++    public void setCustomVriFlags(Bundle bundle) {
++        // Oplus extension not available on custom ROM, no-op
++    }
++
++    private static class SurfaceChangedCallbackProxy
++            implements android.view.ViewRootImpl.SurfaceChangedCallback {
++        private final SurfaceChangedCallback mCallback;
++
++        SurfaceChangedCallbackProxy(SurfaceChangedCallback callback) {
++            this.mCallback = callback;
++        }
++
++        @Override
++        public void surfaceCreated(SurfaceControl.Transaction t) {
++            mCallback.surfaceCreated(t);
++        }
++
++        @Override
++        public void surfaceReplaced(SurfaceControl.Transaction t) {
++            mCallback.surfaceReplaced(t);
++        }
++
++        @Override
++        public void surfaceDestroyed() {
++            mCallback.surfaceDestroyed();
++        }
++    }
++
++    private static class FrameDrawingCallbackImpl implements HardwareRenderer.FrameDrawingCallback {
++        private final HardwareRenderer.FrameDrawingCallback mFrameDrawingCallback;
++
++        FrameDrawingCallbackImpl(HardwareRenderer.FrameDrawingCallback frameDrawingCallback) {
++            this.mFrameDrawingCallback = frameDrawingCallback;
++        }
++
++        @Override
++        public void onFrameDraw(long l) {
++            this.mFrameDrawingCallback.onFrameDraw(l);
++        }
++    }
++}
+diff --git a/oplus-fwk/src/oplus/content/res/OplusExtraConfiguration.java b/oplus-fwk/src/oplus/content/res/OplusExtraConfiguration.java
+index d9206c3..868a56e 100644
+--- a/oplus-fwk/src/oplus/content/res/OplusExtraConfiguration.java
++++ b/oplus-fwk/src/oplus/content/res/OplusExtraConfiguration.java
+@@ -3,4 +3,6 @@ package oplus.content.res;
+ public class OplusExtraConfiguration {
+     
+     public OplusExtraConfiguration() {}
++    public int mFont = 0;
++    public int mThemeChangedFlags = 0;
+ }
+-- 
+2.53.0
+
