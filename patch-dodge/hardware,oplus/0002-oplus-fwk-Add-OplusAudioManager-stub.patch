@@ -1,7 +1,7 @@
-From 2c7534f6aa38c46f265bd86b7fa67826699da092 Mon Sep 17 00:00:00 2001
+From 05b4372f3c044fadddd30ba9d632256fe201f5fa Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Thu, 16 Apr 2026 12:32:16 +0800
-Subject: [PATCH 2/2] oplus-fwk: Add OplusAudioManager stub
+Subject: [PATCH 2/7] oplus-fwk: Add OplusAudioManager stub
 
 Needed by Oplus camera
 ---
@@ -38,5 +38,5 @@ index 0000000..c539bbe
 +    }
 +}
 -- 
-2.53.0
+2.54.0
 

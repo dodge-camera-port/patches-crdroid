@@ -1,0 +1,61 @@
+From a5acedffca9cc35fb52c14bf523253cd398a127a Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Sun, 31 May 2026 19:08:54 +0800
+Subject: [PATCH 4/7] oplus-fwk: Update to latest IOplusCameraManager Cmd enum
+
+Oplus camera on OnePlus 13 set zoom level through CMD_UI_EVENT
+---
+ .../hardware/camera2/IOplusCameraManager.java | 21 ++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/oplus-fwk/src/android/hardware/camera2/IOplusCameraManager.java b/oplus-fwk/src/android/hardware/camera2/IOplusCameraManager.java
+index 2a49f1c..449e13e 100644
+--- a/oplus-fwk/src/android/hardware/camera2/IOplusCameraManager.java
++++ b/oplus-fwk/src/android/hardware/camera2/IOplusCameraManager.java
+@@ -5,27 +5,38 @@ import android.common.OplusFeatureList;
+ import android.content.Context;
+ import android.os.IBinder;
+ 
+-/* loaded from: classes.dex */
++/* JADX INFO: loaded from: classes.dex */
+ public interface IOplusCameraManager extends IOplusCommonFeature {
+     public static final IOplusCameraManager DEFAULT = new IOplusCameraManager() { // from class: android.hardware.camera2.IOplusCameraManager.1
+     };
+     public static final String NAME = "IOplusCameraManager";
+ 
+-    /* loaded from: classes.dex */
+     public enum Cmd {
+         CMD_NONE,
+         CMD_PRE_CAPTURE,
+         CMD_PRE_OPEN,
+         CMD_PRE_EVLIST,
+-        CMD_READ_MEM
++        CMD_READ_MEM,
++        CMD_PRE_PRO_MANUAL_WB,
++        CMD_UI_EVENT,
++        CMD_PRE_CLOSE,
++        CMD_CAMERA_CONTROL,
++        CMD_OPLUS_SEND_RUS_CONFIG_TO_HAL,
++        CMD_OPLUS_FORCE_FALLBACK,
++        CMD_OPLUS_FORCE_EIS,
++        CMD_OPLUS_OPERATION_MODE,
++        CMD_OPLUS_PRO_COLOR,
++        CMD_OPLUS_FORCE_FPS,
++        CMD_OPLUS_HCS,
++        CMD_OPLUS_IO_PRIORITY,
++        CMD_OPLUS_FORCE_DCG,
++        CMD_OPLUS_FORCE_AINR
+     }
+ 
+-    @Override
+     default OplusFeatureList.OplusIndex index() {
+         return OplusFeatureList.OplusIndex.IOplusCameraManager;
+     }
+ 
+-    @Override
+     default IOplusCommonFeature getDefault() {
+         return DEFAULT;
+     }
+-- 
+2.54.0
+
