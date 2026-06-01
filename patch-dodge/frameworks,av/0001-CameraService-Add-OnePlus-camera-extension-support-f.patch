@@ -1,7 +1,8 @@
-From f64b0c96159a51720e622283081acd62fa52db8b Mon Sep 17 00:00:00 2001
+From d6654b364cc7ce4eb02f548e73ae206b45c294d8 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sun, 31 May 2026 19:02:32 +0800
-Subject: [PATCH] CameraService: Add OnePlus camera extension support for zoom
+Subject: [PATCH 1/2] CameraService: Add OnePlus camera extension support for
+ zoom
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -47,7 +48,7 @@ Test: Camera zoom works on custom ROM with prebuilt libcsextimpl.so.
  create mode 100644 services/camera/libcameraservice/ext/include/ICameraServiceExt.h
 
 diff --git a/camera/CameraSessionStats.cpp b/camera/CameraSessionStats.cpp
-index 450bdd8..4ec7624 100644
+index 450bdd870c..4ec76244f9 100644
 --- a/camera/CameraSessionStats.cpp
 +++ b/camera/CameraSessionStats.cpp
 @@ -260,6 +260,10 @@ const int CameraSessionStats::CAMERA_STATE_ACTIVE = 1;
@@ -62,7 +63,7 @@ index 450bdd8..4ec7624 100644
  const int CameraSessionStats::CAMERA_FACING_FRONT = 1;
  const int CameraSessionStats::CAMERA_FACING_EXTERNAL = 2;
 diff --git a/camera/include/camera/CameraSessionStats.h b/camera/include/camera/CameraSessionStats.h
-index 34ee882..f9e960b 100644
+index 34ee882d60..f9e960b9de 100644
 --- a/camera/include/camera/CameraSessionStats.h
 +++ b/camera/include/camera/CameraSessionStats.h
 @@ -109,6 +109,9 @@ public:
@@ -76,7 +77,7 @@ index 34ee882..f9e960b 100644
      /**
       * Values for notifyCameraState facing
 diff --git a/services/camera/libcameraservice/Android.bp b/services/camera/libcameraservice/Android.bp
-index 5062e4c..4175e8a 100644
+index 5062e4c673..4175e8ad7a 100644
 --- a/services/camera/libcameraservice/Android.bp
 +++ b/services/camera/libcameraservice/Android.bp
 @@ -211,6 +211,8 @@ cc_library {
@@ -97,7 +98,7 @@ index 5062e4c..4175e8a 100644
  
      export_include_dirs: ["."],
 diff --git a/services/camera/libcameraservice/CameraService.cpp b/services/camera/libcameraservice/CameraService.cpp
-index ae4e984..562081c 100644
+index ae4e98453e..562081cded 100644
 --- a/services/camera/libcameraservice/CameraService.cpp
 +++ b/services/camera/libcameraservice/CameraService.cpp
 @@ -91,6 +91,8 @@
@@ -130,7 +131,7 @@ index ae4e984..562081c 100644
  }
  
 diff --git a/services/camera/libcameraservice/common/CameraProviderManager.cpp b/services/camera/libcameraservice/common/CameraProviderManager.cpp
-index 8d8f0e2..fa468f8 100644
+index 8d8f0e2121..fa468f87e4 100644
 --- a/services/camera/libcameraservice/common/CameraProviderManager.cpp
 +++ b/services/camera/libcameraservice/common/CameraProviderManager.cpp
 @@ -59,6 +59,9 @@
@@ -157,7 +158,7 @@ index 8d8f0e2..fa468f8 100644
          hardware::hidl_version *v, IPCTransport *transport) {
      if (v == nullptr || transport == nullptr) {
 diff --git a/services/camera/libcameraservice/common/CameraProviderManager.h b/services/camera/libcameraservice/common/CameraProviderManager.h
-index 40a4254..a2231d6 100644
+index 40a4254725..a2231d6f26 100644
 --- a/services/camera/libcameraservice/common/CameraProviderManager.h
 +++ b/services/camera/libcameraservice/common/CameraProviderManager.h
 @@ -315,6 +315,8 @@ public:
@@ -170,7 +171,7 @@ index 40a4254..a2231d6 100644
      status_t isConcurrentSessionConfigurationSupported(
              const std::vector<hardware::camera2::utils::CameraIdAndSessionConfiguration>
 diff --git a/services/camera/libcameraservice/device3/Camera3OutputUtils.cpp b/services/camera/libcameraservice/device3/Camera3OutputUtils.cpp
-index cd965e3..094395c 100644
+index cd965e37f4..094395c797 100644
 --- a/services/camera/libcameraservice/device3/Camera3OutputUtils.cpp
 +++ b/services/camera/libcameraservice/device3/Camera3OutputUtils.cpp
 @@ -1057,6 +1057,38 @@ void collectAndRemovePendingOutputBuffers(bool useHalBufManager,
@@ -213,7 +214,7 @@ index cd965e3..094395c 100644
      ATRACE_CALL();
      ssize_t idx;
 diff --git a/services/camera/libcameraservice/device3/Camera3OutputUtils.h b/services/camera/libcameraservice/device3/Camera3OutputUtils.h
-index 82ca6c8..986a976 100644
+index 82ca6c80c3..986a9766a5 100644
 --- a/services/camera/libcameraservice/device3/Camera3OutputUtils.h
 +++ b/services/camera/libcameraservice/device3/Camera3OutputUtils.h
 @@ -96,6 +96,25 @@ namespace camera3 {
@@ -244,7 +245,7 @@ index 82ca6c8..986a976 100644
      // the inflight request's pending buffers vector.  Does not make
 diff --git a/services/camera/libcameraservice/ext/CameraServiceExtFactory.cpp b/services/camera/libcameraservice/ext/CameraServiceExtFactory.cpp
 new file mode 100644
-index 0000000..df12292
+index 0000000000..df12292b7b
 --- /dev/null
 +++ b/services/camera/libcameraservice/ext/CameraServiceExtFactory.cpp
 @@ -0,0 +1,103 @@
@@ -353,7 +354,7 @@ index 0000000..df12292
 +} // namespace android
 diff --git a/services/camera/libcameraservice/ext/ICameraServiceExt.cpp b/services/camera/libcameraservice/ext/ICameraServiceExt.cpp
 new file mode 100644
-index 0000000..d691995
+index 0000000000..d691995a42
 --- /dev/null
 +++ b/services/camera/libcameraservice/ext/ICameraServiceExt.cpp
 @@ -0,0 +1,16 @@
@@ -375,7 +376,7 @@ index 0000000..d691995
 +} // namespace android
 diff --git a/services/camera/libcameraservice/ext/include/CameraServiceExtFactory.h b/services/camera/libcameraservice/ext/include/CameraServiceExtFactory.h
 new file mode 100644
-index 0000000..f7ab9c6
+index 0000000000..f7ab9c6859
 --- /dev/null
 +++ b/services/camera/libcameraservice/ext/include/CameraServiceExtFactory.h
 @@ -0,0 +1,24 @@
@@ -405,7 +406,7 @@ index 0000000..f7ab9c6
 +} // namespace android
 diff --git a/services/camera/libcameraservice/ext/include/ICameraServiceExt.h b/services/camera/libcameraservice/ext/include/ICameraServiceExt.h
 new file mode 100644
-index 0000000..daf72d5
+index 0000000000..daf72d5b5d
 --- /dev/null
 +++ b/services/camera/libcameraservice/ext/include/ICameraServiceExt.h
 @@ -0,0 +1,14 @@

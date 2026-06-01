@@ -1,7 +1,7 @@
-From ab82e9086f96b95b9320266e50c788a6977b30f3 Mon Sep 17 00:00:00 2001
+From 02cead5d9471d1bc7cf3c7c2259b85c46c39002a Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sun, 31 May 2026 19:27:16 +0800
-Subject: [PATCH 7/7] oplus-fwk: Simplify getMetadataTag and
+Subject: [PATCH 6/7] oplus-fwk: Simplify getMetadataTag and
  metaDataValueConvert
 
 Avoid crashing when logging

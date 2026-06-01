@@ -1,4 +1,4 @@
-From 9f376a3549f7efb15b8ea8d353a51cb2c8580327 Mon Sep 17 00:00:00 2001
+From e2844aff4077d2bd5462ee6548dd6713abb22764 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sun, 31 May 2026 19:10:32 +0800
 Subject: [PATCH 5/7] oplus-fwk: sendOplusExtCamCmd: Don't enforce permissiom

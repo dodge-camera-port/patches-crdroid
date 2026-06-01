@@ -1,4 +1,4 @@
-From a5acedffca9cc35fb52c14bf523253cd398a127a Mon Sep 17 00:00:00 2001
+From 65ba95903c11f6cfaeda7dd5d3aafebc630d1233 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sun, 31 May 2026 19:08:54 +0800
 Subject: [PATCH 4/7] oplus-fwk: Update to latest IOplusCameraManager Cmd enum
