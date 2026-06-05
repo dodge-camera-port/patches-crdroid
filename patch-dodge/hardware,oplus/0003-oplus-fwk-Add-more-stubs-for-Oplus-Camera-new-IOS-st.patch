@@ -1,7 +1,7 @@
 From 7803f419a892630a9b203a98e429b8de9e7eccbe Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Tue, 26 May 2026 22:50:18 +0800
-Subject: [PATCH 3/7] oplus-fwk: Add more stubs for Oplus Camera new IOS-style
+Subject: [PATCH 3/9] oplus-fwk: Add more stubs for Oplus Camera new IOS-style
  UI update
 
 OnePlus 13 CPH2653_16.0.7.201, 11.F.89

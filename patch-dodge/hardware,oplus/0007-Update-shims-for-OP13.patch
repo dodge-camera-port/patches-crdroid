@@ -1,7 +1,7 @@
 From c972d6c1430e5c78dec24df2743b1e9715e2a235 Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Sun, 31 May 2026 16:39:24 +0300
-Subject: [PATCH 7/7] Update shims for OP13
+Subject: [PATCH 7/9] Update shims for OP13
 
 ---
  .../android/graphics/OplusBaseRenderNode.java |  5 ++
