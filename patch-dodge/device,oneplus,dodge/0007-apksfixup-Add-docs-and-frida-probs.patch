@@ -1,0 +1,835 @@
+From 78a46d1c3273c599552692855ed29b953abfee61 Mon Sep 17 00:00:00 2001
+From: spkal01 <kalligeross@gmail.com>
+Date: Sun, 7 Jun 2026 20:20:27 +0300
+Subject: [PATCH 7/7] apksfixup: Add docs and frida probs
+
+---
+ apsfixup/docs/PORTING.md                    | 144 +++++++++++++++++
+ apsfixup/docs/frida/README.md               |  50 ++++++
+ apsfixup/docs/frida/op_bufferfill_probe.js  |  81 ++++++++++
+ apsfixup/docs/frida/op_chroma_repair.js     | 115 +++++++++++++
+ apsfixup/docs/frida/op_force_align.js       |  59 +++++++
+ apsfixup/docs/frida/op_outstruct_dump.js    |  47 ++++++
+ apsfixup/docs/frida/op_planelayout_probe.js |  95 +++++++++++
+ apsfixup/docs/frida/op_qnn_init_probe.js    | 169 ++++++++++++++++++++
+ 8 files changed, 760 insertions(+)
+ create mode 100644 apsfixup/docs/PORTING.md
+ create mode 100644 apsfixup/docs/frida/README.md
+ create mode 100644 apsfixup/docs/frida/op_bufferfill_probe.js
+ create mode 100644 apsfixup/docs/frida/op_chroma_repair.js
+ create mode 100644 apsfixup/docs/frida/op_force_align.js
+ create mode 100644 apsfixup/docs/frida/op_outstruct_dump.js
+ create mode 100644 apsfixup/docs/frida/op_planelayout_probe.js
+ create mode 100644 apsfixup/docs/frida/op_qnn_init_probe.js
+
+diff --git a/apsfixup/docs/PORTING.md b/apsfixup/docs/PORTING.md
+new file mode 100644
+index 0000000..d9c0849
+--- /dev/null
++++ b/apsfixup/docs/PORTING.md
+@@ -0,0 +1,144 @@
++# libapsfixup — porting / blob-update guide
++
++`libapsfixup.so` fixes the OnePlus APS "turbo" soft/green/crash bug on ports where the device's
++gralloc reports a wrong plane layout for the full-res **P010 (10-bit)** snapshot output buffer.
++The ArcSoft/Algo blobs are byte-identical to stock, so they faithfully consume the bad layout
++and produce a garbage chroma plane. The fix corrects three things at runtime, by **GOT
++redirection only** (no code patching, no execmem/execmod):
++
++1. **chroma plane pointer** — `plane[1] (UV) = luma + Yplane_size` (was `align_up(luma,0)` = 4GB garbage)
++2. **chroma stride** — `pitch[1] = pitch[0]` (was `0`)
++3. **P010 LSB→MSB conversion length** — `w5` set so `w4*w5*1.5 == buffer` (was an uninitialized stride)
++
++Most of the logic is **geometry-derived and portable** (works on any 4:2:0 P010 buffer); only a
++handful of **offsets are pinned to specific blob BuildIds** and must be re-derived for a new
++device or a camera-blob OTA.
++
++---
++
++## What is portable vs. what must be re-pinned
++
++**Portable (do NOT need to change):**
++- The chroma offset = `2/3 * mapping_size` (Y plane of a 4:2:0 P010 buffer), page aligned.
++- `pitch[1] = pitch[0]`.
++- The conversion fix `w5 = (2/3 * avail) / w4` (makes the loop's `w4*w5*1.5` span exactly the buffer).
++- The repair scan (find a `0x76..` valid ptr immediately followed by a `0x77..`-garbage ptr).
++- The naked-asm trampoline for `ARC_Turbo_RAW_Process` (it has stack args; a C wrapper drops them).
++- The `dlsym` symbol name `"ARC_Turbo_RAW_Process"`.
++
++**Pinned per blob (`apsfixup.cpp` constants):**
++| constant | what it is | lib |
++|---|---|---|
++| `P010_FUNC_OFF` | `APSFormatConverterNeon::p010LSB2MSBNeon` | libAlgoProcess.so |
++| `P010_GOT_OFF`  | that function's `R_AARCH64_JUMP_SLOT` GOT entry | libAlgoProcess.so |
++| `DLSYM_GOT_OFF` | the `dlsym@LIBC` `R_AARCH64_JUMP_SLOT` GOT entry | libAlgoInterface.so |
++
++Plus the **output-struct field offsets** in `repair_struct()` (`+0x40` luma, `+0x48` chroma,
++`+0x60` pitch[0], `+0x64` pitch[1]) — these are the ArcSoft ASVL output struct and are usually
++stable across OnePlus devices, but **verify** them (see step 4).
++
++---
++
++## Re-derive the offsets (per device / per blob)
++
++You need the two blobs from the target firmware:
++`/odm/lib64/libAlgoProcess.so` and `/odm/lib64/libAlgoInterface.so`.
++Tools: `readelf`, `nm`, and Python `capstone` (`pip install capstone`).
++
++### 1. `P010_FUNC_OFF` and `P010_GOT_OFF` (libAlgoProcess.so)
++
++```bash
++# function offset — it appears in tombstones as APSFormatConverterNeon::p010LSB2MSBNeon, and is
++# a JUMP_SLOT relocation target. The reloc gives BOTH the GOT slot and the function offset:
++readelf -r libAlgoProcess.so | grep -i p010LSB2MSBNeon
++#   <GOT_OFF>  ....JUMP_SL  <FUNC_OFF>  _ZN22APSFormatConverterNeon...p010LSB2MSBNeon + 0
++# -> left column  = P010_GOT_OFF
++# -> symbol value = P010_FUNC_OFF
++```
++If the symbol is stripped, find it via the log string `"p010LSB2MSB, w: %u, h: %u, rowS: %u, colS: %u"`
++and its call site (`bl` to a PLT stub `adrp x16; ldr x17,[x16,#N]; br x17` — the GOT slot is that page+N).
++
++Sanity-check the conversion math is unchanged (loop length = `w4*w5*1.5`):
++```python
++# disassemble the function and confirm: mul w8,w4,w5 ; add w9,w8,w8,lsl#1 ; lsr w9,#5 ; ldr q0,[x..],#0x10 ; shl v0.8h,#6
++```
++If that pattern changed, the `w5 = (2/3*avail)/w4` formula may need re-deriving.
++
++### 2. `DLSYM_GOT_OFF` (libAlgoInterface.so)
++
++```bash
++# confirm ARC is resolved by dlsym (string + dlsym import + a "find ARC_... failed dlerror" log):
++strings -a libAlgoInterface.so | grep -x ARC_Turbo_RAW_Process
++readelf -r libAlgoInterface.so | grep -i 'dlsym@LIBC'
++#   <GOT_OFF>  ....JUMP_SL  0  dlsym@LIBC + 0   -> DLSYM_GOT_OFF
++```
++If `ARC_Turbo_RAW_Process` is NOT dlsym'd in this blob (e.g. it became a real DT_NEEDED import),
++GOT-hook libAlgoInterface's import of it directly instead of dlsym.
++
++### 3. Confirm BIND_NOW (both libs)
++
++```bash
++readelf -d libAlgoProcess.so   | grep -iE 'BIND_NOW|FLAGS'
++readelf -d libAlgoInterface.so | grep -iE 'BIND_NOW|FLAGS'
++```
++GOT redirection relies on the slots being resolved at load. All OnePlus camera blobs seen so far
++are BIND_NOW. If a blob is lazy, hook earlier or resolve the slot first.
++
++### 4. Verify the output-struct layout (recommended, with Frida)
++
++The bring-up Frida probes are in [`frida/`](frida/) — see [`frida/README.md`](frida/README.md)
++for the full set and the recommended order. Run `frida/op_outstruct_dump.js` (or
++`op_planelayout_probe.js`) to dump the struct and confirm the field offsets in the output struct:
++
++```
++#   +0x40 = luma (valid 0x76.. ptr)   +0x48 = chroma (0x77..-garbage)
++#   +0x60 = pitch[0] (Y stride)       +0x64 = pitch[1] (==0, the bug)
++```
++If those offsets differ, update `repair_struct()` (and the `+0x40==off` pitch special-case)
++accordingly. **`frida/op_chroma_repair.js` is the reference fix** — it implements the exact same
++three corrections as `apsfixup.cpp`, in JS; when it makes photos sharp on the new device, the
++native lib will too with the matching offsets.
++
++---
++
++## Update + build + verify
++
++1. Edit the three constants (and struct offsets if step 4 found differences) in `apsfixup.cpp`.
++2. Update the `DT_NEEDED`: `extract-files.py` already does `.add_needed('libapsfixup.so')` on
++   `libAlgoProcess.so` (uses `prebuilts/extract-tools/.../patchelf-0_18`).
++3. Make sure `libapsfixup.so` is resolvable by the camera namespace: it is a `/odm` lib that
++   `libAlgoProcess` DT_NEEDEDs, and OnePlus camera app namespaces cannot resolve `/odm` libs by
++   name — so add `libapsfixup.so` to `vendor/etc/public.libraries.txt` (we do this via a
++   `.add_line_if_missing()` fixup). The same list must expose the ArcSoft/QNN dlopen targets.
++4. Soong namespace: the blob namespace (`vendor/<oem>/<device>`) must `import` the namespace that
++   defines `libapsfixup` (here `device/oneplus/dodge`) — add it to `namespace_imports`.
++5. `m libapsfixup`, flash (or push `libapsfixup.so` + the patched `libAlgoProcess.so` +
++   `public.libraries.txt`, `restorecon` to `same_process_hal_file` for the `/odm` libs, reboot).
++6. Verify:
++   ```
++   adb logcat -s apsfixup    # take one Auto photo
++   ```
++   Expect, in order:
++   ```
++   libapsfixup loaded (pid ...)
++   GOT-hooked p010 (real=...)
++   GOT-hooked dlsym in libAlgoInterface (real=...)
++   interposing ARC_Turbo_RAW_Process (real=...)
++   chroma fix: luma=... -> ... (ysize=0x1800000)
++   p010 fix: avail=... w4=... w5 <garbage>-><height>
++   ```
++   The lib also logs `GOT[p010]=... expected ...` if the GOT slot value doesn't match
++   `base+P010_FUNC_OFF` — that warning means **the offsets drifted** (re-run the steps above).
++
++---
++
++## Notes / assumptions
++
++- Buffer is 4:2:0 semiplanar P010 → `Yplane = 2/3 * total`. If a device uses a different snapshot
++  format (e.g. NV12 8-bit, or a tiled/UBWC layout), the `2/3` ratio and the contiguous-plane
++  assumption must be revisited.
++- The fix only engages when the chroma plane is actually garbage (the repair scan is a no-op on
++  correct buffers), so shipping it is safe even on a build where the underlying bug is absent.
++- Offsets here are for: libAlgoProcess `BuildId db5afd2a31f4cb3b85b593b2f3383d43`, libAlgoInterface
++  `BuildId a81b2d7129a5cf28c91ffd49445ea88f` (OnePlus 13 / dodge, sm8750). Verify BuildIds with
++  `readelf -n <lib> | grep -i 'build id'` before assuming the constants apply.
+diff --git a/apsfixup/docs/frida/README.md b/apsfixup/docs/frida/README.md
+new file mode 100644
+index 0000000..9feac9a
+--- /dev/null
++++ b/apsfixup/docs/frida/README.md
+@@ -0,0 +1,50 @@
++# Frida bring-up probes (apsfixup)
++
++These are **bring-up / diagnostic** scripts used to find and prove the APS turbo P010 bug before
++translating it into the native `libapsfixup.so`. They are **not** shipped in the build — they run
++on a dev device with `frida-server` (root) attached to the camera app:
++
++```
++adb shell setenforce 0
++frida -U -n com.oplus.camera -l <probe>.js > out.txt
++# (some OnePlus builds name the process "Camera": frida -U -n Camera -l <probe>.js)
++```
++
++All are **native-only** (no Java `.implementation` hooks — that crashes this ART) and use the
++Frida-17 instance API (`Process.findModuleByName(m).findExportByName(...)`, NOT the removed static
++`Module.findExportByName`).
++
++## Recommended porting workflow
++
++When porting to a new OnePlus device / after a camera blob OTA, use them in this order:
++
++1. **`op_qnn_init_probe.js`** — first, make sure the turbo path even runs. It flags `/odm` dlopen
++   failures (the namespace bug) and whether `ARC_Turbo_RAW_InitQNN` is reached. If you see
++   `[dlopen FAIL] … not accessible for the namespace clns-shared-…`, fix `public.libraries.txt`
++   before anything else (the turbo/DSP path is gated until those `/odm` libs resolve).
++2. **`op_chroma_repair.js`** — the reference fix. If it makes Auto photos sharp + correctly
++   colored, the bug is the same and the native lib will work with matching offsets. This is the
++   single most important probe — it *is* the fix, in JS.
++3. **`op_outstruct_dump.js` / `op_planelayout_probe.js` / `op_bufferfill_probe.js`** — only if the
++   struct field offsets differ on the new blob and you need to re-derive `+0x40/+0x48/+0x60/+0x64`.
++
++See `../PORTING.md` for the static (readelf/capstone) offset re-derivation.
++
++## Probe reference
++
++| script | hooks | what it shows / does |
++|---|---|---|
++| `op_chroma_repair.js` | `ARC_Turbo_RAW_Process` (libarcsoft_turbo_raw), `p010LSB2MSBNeon` (libAlgoProcess) | **The runtime fix.** Repairs the output struct chroma ptr (`luma+⅔·buf`) + pitch (`=Y stride`), and clamps the P010 conversion (`w5` so `w4·w5·1.5==buffer`). Also dumps the struct. Make Auto photos sharp = bug confirmed. |
++| `op_qnn_init_probe.js` | `dlopen`/`android_dlopen_ext`, `ARC_Turbo_RAW_InitQNN`, fastrpc `ioctl` | Finds `/odm` dlopen/namespace failures and whether QNN/DSP init is reached. Diagnoses the "turbo never runs → soft" gate. |
++| `op_outstruct_dump.js` | `turboHdrProcessV2` (libAlgoInterface) | Raw dump of the output struct (`AlgoProcessData+0x4f8`) to identify luma/chroma/pitch field offsets. |
++| `op_planelayout_probe.js` | `APSGrallocUtils::getPlaneLayout`, `camApsBufferLockPlanes` (libAlgoProcess) | Dumps the gralloc-reported Y/UV plane addresses + strides — shows the bad P010 plane layout at the source. |
++| `op_bufferfill_probe.js` | the `[AlgoProcessData+0xa8]` vtable call sites in `turboRawProcess` | Pinpoints which call writes the garbage chroma into the output struct (before/after compare). |
++| `op_force_align.js` | `libAlgoProcess+0x5c76f4` (the alignment-config reader) | Diagnostic: force the `mOutputAlignmentStride/Scanline` members. (Historical — proved these are NOT the chroma driver; kept as a worked example of struct-member forcing.) |
++
++## Notes
++
++- Offsets inside these scripts are pinned to the dodge blobs (libAlgoProcess `db5afd2a…`,
++  libAlgoInterface `a81b2d71…`). On a new blob, update them the same way as the native lib
++  (`readelf -r`, capstone) — each script documents its offsets in a header comment.
++- `op_chroma_repair.js` is the authoritative reference for the fix arithmetic; if you change the
++  native `apsfixup.cpp`, keep it in sync (or vice-versa).
+diff --git a/apsfixup/docs/frida/op_bufferfill_probe.js b/apsfixup/docs/frida/op_bufferfill_probe.js
+new file mode 100644
+index 0000000..11afc6e
+--- /dev/null
++++ b/apsfixup/docs/frida/op_bufferfill_probe.js
+@@ -0,0 +1,81 @@
++// op_bufferfill_probe.js — find the EXACT function that writes the garbage chroma plane.
++//
++// In libAlgoInterface::turboRawProcess the output ASVL struct = AlgoProcessData(x19)+0x4f8
++// (luma @+0x40, chroma @+0x48). Its planes are filled by a vtable call [x19+0xa8] at two
++// sites (0x1c478f0, 0x1c47ad8). This hooks each site, logging:
++//   * the TARGET function of the vtable call (module+offset)  -> the code to RE/patch next
++//   * luma/chroma in the output struct BEFORE and AFTER the call -> which call writes garbage
++//
++// Run on the namespace-fixed turbo-ON build, WITHOUT op_force_align (let it run natural / 0,0).
++// It will still crash after these logs (the garbage write is later) — the lines we need print
++// first.
++//   adb shell setenforce 0
++//   frida -U -n com.oplus.camera -l ~/sparkos/op_bufferfill_probe.js > ~/sparkos/frida_bf.txt
++//   >>> take ONE Auto photo <<<
++'use strict';
++
++function hx(p){ return p ? ('0x'+p.toString(16)) : '0x0'; }
++function modOff(p){
++  try { var m=Process.findModuleByAddress(p);
++    return m ? (m.name + '+0x' + p.sub(m.base).toString(16)) : (hx(p)+' (unknown module)'); }
++  catch(e){ return hx(p); }
++}
++// the align_up(luma,0) garbage signature: hi word in pointer band 0x70..0x7f, tiny low32
++function isGarbage(v){
++  try { if(v.isNull()) return false; var hi=parseInt(v.shr(32).toString());
++    if(hi<0x70||hi>0x7f) return false;
++    return v.and(ptr('0xffffffff')).compare(ptr('0x100000'))<0; } catch(e){ return false; }
++}
++function rdp(p){ try { return p.readPointer(); } catch(e){ return ptr(0); } }
++
++var SITES=[0x1c478f0, 0x1c47ad8];   // blr [x19+0xa8] sites in turboRawProcess
++var seen=0;
++
++function dumpOut(tag, x19){
++  try {
++    var out = x19.add(0x4f8);
++    var luma = rdp(out.add(0x40));
++    var chroma = rdp(out.add(0x48));
++    console.log('    '+tag+': luma='+hx(luma)+'  chroma='+hx(chroma)
++      + (isGarbage(chroma) ? '   <<<<< CHROMA GARBAGE' : ''));
++    return isGarbage(chroma);
++  } catch(e){ console.log('    '+tag+' err '+e); return false; }
++}
++
++function arm(){
++  var m = Process.findModuleByName('libAlgoInterface.so');
++  if (!m) return false;
++  SITES.forEach(function(off, idx){
++    var site = m.base.add(off);
++    // BEFORE: at the blr, x8 = target fn, x19 = AlgoProcessData
++    Interceptor.attach(site, {
++      onEnter: function(){
++        if (seen > 12) return;
++        seen++;
++        var x19 = this.context.x19;
++        var x8  = this.context.x8;
++        console.log('\n=== site#'+idx+' @libAlgoInterface+'+hx(off)
++          + '  vtable target = ' + modOff(x8) + '   tid='+Process.getCurrentThreadId());
++        console.log('    AlgoProcessData(x19)='+hx(x19)+'  outStruct='+hx(x19.add(0x4f8)));
++        this.x19 = x19;
++        dumpOut('BEFORE', x19);
++      }
++    });
++    // AFTER: instruction right after the blr
++    Interceptor.attach(site.add(4), {
++      onEnter: function(){
++        if (seen > 12) return;
++        try {
++          var x19 = this.context.x19;
++          if (dumpOut('AFTER ', x19))
++            console.log('    ^^^ this vtable call WROTE the garbage chroma — RE its target above.');
++        } catch(e){}
++      }
++    });
++  });
++  console.log('[*] hooked buffer-fill sites (0x1c478f0, 0x1c47ad8). Take ONE Auto photo.');
++  return true;
++}
++
++var poll=setInterval(function(){ if(arm()) clearInterval(poll); }, 150);
++console.log('[*] op_bufferfill_probe loaded (self-arming).');
+diff --git a/apsfixup/docs/frida/op_chroma_repair.js b/apsfixup/docs/frida/op_chroma_repair.js
+new file mode 100644
+index 0000000..ed51062
+--- /dev/null
++++ b/apsfixup/docs/frida/op_chroma_repair.js
+@@ -0,0 +1,115 @@
++// op_chroma_repair.js — repair the garbage chroma plane at ARC_Turbo_RAW_Process entry, so the
++// turbo write lands in the real UV plane => sharp Auto photo (proof toward the permanent patch).
++//
++// At ARC_Turbo_RAW_Process(handle, s1, s2, s3, ...) the buffer structs (x1/x2/x3) have a
++// luma/chroma plane pair: valid 0x76.. ptr at +N, then garbage 0x77.. ptr at +N+8. We replace
++// the garbage chroma with luma + Y-plane-size. Y = 2/3 of the buffer mapping (4:2:0 semiplanar,
++// holds for NV12 and P010).  CHROMA_NUM/CHROMA_DEN let us calibrate the fraction if needed.
++//
++// ARC_Turbo_RAW_Process @ libarcsoft_turbo_raw.so + 0x1e45c
++//   adb shell setenforce 0
++//   frida -U -n com.oplus.camera -l ~/sparkos/op_chroma_repair.js > ~/sparkos/frida_repair.txt
++//   >>> take ONE Auto photo — does it complete + look SHARP with correct colors? <<<
++'use strict';
++var CHROMA_NUM = 2, CHROMA_DEN = 3;   // chroma offset = mapping_size * NUM/DEN  (calibrate)
++
++function hx(p){ return p ? ('0x'+p.toString(16)) : '0x0'; }
++function isBuf(v){ try{ var hi=parseInt(v.shr(32).toString()); if(hi<0x70||hi>0x7f) return false;
++  return v.and(ptr('0xffffffff')).compare(ptr('0x100000'))>=0; }catch(e){return false;} }
++function isGarbage(v){ try{ if(v.isNull())return false; var hi=parseInt(v.shr(32).toString());
++  if(hi<0x70||hi>0x7f) return false; return v.and(ptr('0xffffffff')).compare(ptr('0x100000'))<0; }catch(e){return false;} }
++
++function repairStruct(name, base){
++  if(!base || base.isNull()) return;
++  try { if(Process.findRangeByAddress(base)===null) return; } catch(e){ return; }
++  for (var off=0; off<0x80; off+=8){
++    var luma, chroma;
++    try { luma = base.add(off).readPointer(); chroma = base.add(off+8).readPointer(); } catch(e){ break; }
++    if (isBuf(luma) && isGarbage(chroma)){
++      var rng=null; try{ rng=Process.findRangeByAddress(luma); }catch(e){}
++      if(!rng){ console.log('  ['+name+'] +0x'+off.toString(16)+' luma='+hx(luma)+' chroma='+hx(chroma)+'  (no mapping, skip)'); continue; }
++      // bytes from luma to end of its mapping; Y plane = avail * NUM/DEN (4:2:0 semiplanar)
++      var lumaOff = luma.sub(rng.base).toUInt32();             // offset of luma within mapping
++      var avail = rng.size - lumaOff;                          // bytes available from luma
++      var ysize = Math.floor(avail * CHROMA_NUM / CHROMA_DEN);
++      ysize = Math.floor(ysize / 4096) * 4096;                 // page align
++      var newChroma = luma.add(ysize);
++      base.add(off+8).writePointer(newChroma);
++      console.log('  ['+name+'] +0x'+off.toString(16)+'  luma='+hx(luma)
++        +'  chroma '+hx(chroma)+' -> '+hx(newChroma)+'   (map '+hx(rng.base)+' size 0x'+rng.size.toString(16)+', Ysize 0x'+ysize.toString(16)+')');
++      // FIX THE GREEN: chroma pitch (pitch[k]) is 0; set it = Y pitch. Plane[k] at off, plane[0]
++      // at 0x40 => k=(off-0x40)/8+1 for the chroma; pitch base = 0x60, pitch[k] at 0x60+k*4.
++      if (off === 0x40){
++        var yPitch = base.add(0x60).readU32();
++        var cur = base.add(0x64).readU32();
++        if (yPitch>0 && cur===0){ base.add(0x64).writeU32(yPitch);
++          console.log('    + chroma pitch[1] @+0x64: '+cur+' -> '+yPitch+' (= Y stride)'); }
++      }
++    }
++  }
++}
++
++var done=0;
++function arm(){
++  var p; try{ var m=Process.findModuleByName('libarcsoft_turbo_raw.so'); if(!m) return false; p=m.base.add(0x1e45c);}catch(e){return false;}
++  Interceptor.attach(p, {
++    onEnter: function(a){
++      if(done>6) return; done++;
++      console.log('\n=== ARC_Turbo_RAW_Process  tid='+Process.getCurrentThreadId()+'  (NUM/DEN='+CHROMA_NUM+'/'+CHROMA_DEN+') ===');
++      // full dump of x2 (the output struct) so we can see plane ptrs AND pitch/stride ints
++      try {
++        var b=a[2];
++        if (b && !b.isNull() && Process.findRangeByAddress(b)){
++          console.log('  --- x2 struct @'+hx(b)+' (raw) ---');
++          for (var o=0;o<0x90;o+=8){
++            var pp=b.add(o).readPointer();
++            var i0=b.add(o).readU32(), i1=b.add(o+4).readU32();
++            console.log('    +0x'+o.toString(16)+' = '+hx(pp)+'   ints{'+i0+', '+i1+'}');
++          }
++        }
++      } catch(e){ console.log('  dump err '+e); }
++      repairStruct('x1', a[1]);
++      repairStruct('x2', a[2]);
++      repairStruct('x3', a[3]);
++    }
++  });
++  console.log('[*] hooked ARC_Turbo_RAW_Process @ '+hx(p)+' — take ONE Auto photo.');
++  return true;
++}
++// hook the REAL p010LSB2MSBNeon (libAlgoProcess+0x4bd934) and CLAMP its length so it converts
++// exactly the buffer (Y+UV) without overrunning. Signature: (u16* dst, u16* src, w2,w3,w4,w5);
++// per RE the processed count = arg4*arg5. We cap arg5 so arg4*arg5 == buffer u16 elements.
++var convArmed=false, convN=0;
++function armConv(){
++  if(convArmed) return;
++  var m=Process.findModuleByName('libAlgoProcess.so'); if(!m) return;
++  try{
++    Interceptor.attach(m.base.add(0x4bd934), {
++      onEnter:function(a){
++        var src=a[1];
++        var w2=a[2].toUInt32(), w3=a[3].toUInt32(), w4=a[4].toUInt32(), w5=a[5].toUInt32();
++        var rng=null; try{ rng=Process.findRangeByAddress(src); }catch(e){}
++        if(!rng){ if(convN<6){convN++;console.log('  [p010conv] src='+hx(src)+' (no map) w2='+w2+' w3='+w3+' w4='+w4+' w5='+w5);} return; }
++        // p010LSB2MSBNeon(dst, src, width=w2, height=w3, dstStride=w4, srcStride=w5).
++        // BUGS on port: w3=Y-height only (green chroma); w5=garbage srcStride (shear/overrun).
++        // FIX: height must span Y+UV = avail/dstStride rows; srcStride must equal dstStride.
++        var avail = rng.size - src.sub(rng.base).toUInt32();   // bytes from src to end of mapping
++        // p010LSB2MSBNeon processes (w4*w5*1.5) bytes (the loop count = (w4*w5*3)>>5, x16B).
++        // For EXACTLY the buffer (Y+UV) we need w4*w5 == avail*2/3. The loop ignores w2/w3.
++        if (w4>0){
++          var targetProd = Math.floor(avail * 2 / 3);          // stride*height (Y-plane bytes) = 0x1800000
++          var newW5 = Math.floor(targetProd / w4);             // = height (3072) when w4=stride(8192)
++          if (newW5>0 && w5 !== newW5){
++            a[5] = ptr(newW5);                                 // w4*w5*1.5 == buffer  -> full Y+UV, no overrun
++            if(convN<8){convN++;console.log('  [p010 FIX] src='+hx(src)+' avail=0x'+avail.toString(16)
++              +' w4='+w4+'  w5 '+w5+'->'+newW5+'  (bytes 0x'+(w4*newW5*3/2).toString(16)+' == buffer)');}
++          } else if(convN<8){convN++;console.log('  [p010 ok] w4='+w4+' w5='+w5+' bytes=0x'+(w4*w5*3/2).toString(16));}
++        }
++      }
++    });
++    convArmed=true;
++    console.log('[*] hooked p010LSB2MSBNeon @ '+hx(m.base.add(0x4bd934))+' (clamp to buffer)');
++  }catch(e){ console.log('[conv hook err] '+e); }
++}
++var poll=setInterval(function(){ var a=arm(); armConv(); if(a&&convArmed) clearInterval(poll); }, 150);
++console.log('[*] op_chroma_repair loaded.');
+diff --git a/apsfixup/docs/frida/op_force_align.js b/apsfixup/docs/frida/op_force_align.js
+new file mode 100644
+index 0000000..85551e0
+--- /dev/null
++++ b/apsfixup/docs/frida/op_force_align.js
+@@ -0,0 +1,59 @@
++// op_force_align.js — CONFIRM + FIX the Auto soft-photo root cause.
++//
++// ROOT CAUSE (RE-proven): libAlgoProcess fn @ +0x5c76f4 reads the OnePlus vendor tag
++// com.oplus.aps.platform.output.alignment (2-int array). The port's HAL doesn't emit it, so
++// the code falls to the default at +0x5c7908: `stp wzr, wzr, [x19,#0x14]` => sets
++// mOutputAlignmentStride=0, mOutputAlignmentScanline=0 (members [obj+0x14]/[obj+0x18]).
++// That 0 makes the chroma-plane align_up() produce a 4GB-garbage pointer => sharp luma,
++// green/garbage chroma, crash, soft Auto photos.
++//
++// This hook lets the function run, then OVERWRITES [obj+0x14]/[obj+0x18] with non-zero
++// alignment so align_up() behaves. Light: fires once per capture (NOT per frame) -> won't
++// hang like the plane-dump probe.
++//
++//   adb shell setenforce 0
++//   frida -U -n com.oplus.camera -l ~/sparkos/op_force_align.js > ~/sparkos/frida_force.txt
++//   >>> take ONE Auto photo, check: does it still crash? is the saved photo sharp+correct color? <<<
++//
++// CALIBRATION: STRIDE_ALIGN / SCANLINE_ALIGN below. Start at 1 (identity = use the natural
++// pre-aligned plane offset). If it no longer 4GB-crashes => ROOT CAUSE CONFIRMED. If colors
++// are shifted/wrong, the buffer expects a real alignment: try 64, then 256, then 512, then
++// 4096 (edit the two consts, re-run, re-shoot). The value that yields a clean photo is the
++// number the port must emit in the com.oplus.aps.platform.output.alignment tag.
++'use strict';
++
++var STRIDE_ALIGN   = 256;   // [obj+0x14] mOutputAlignmentStride   (edit + re-run to calibrate)
++var SCANLINE_ALIGN = 32;   // [obj+0x18] mOutputAlignmentScanline
++
++var OFF = 0x5c76f4;       // alignment-reader function
++var logged = 0;
++
++function arm(){
++  var m = Process.findModuleByName('libAlgoProcess.so');
++  if (!m) return false;
++  Interceptor.attach(m.base.add(OFF), {
++    onEnter: function(a){ this.obj = a[0]; },
++    onLeave: function(r){
++      try {
++        var o = this.obj; if (!o || o.isNull()) return;
++        var oldS = o.add(0x14).readU32();
++        var oldL = o.add(0x18).readU32();
++        o.add(0x14).writeU32(STRIDE_ALIGN);
++        o.add(0x18).writeU32(SCANLINE_ALIGN);
++        if (logged < 4) {
++          logged++;
++          console.log('[force-align] obj=' + o +
++            '  was {stride=' + oldS + ', scanline=' + oldL + '}' +
++            '  -> {stride=' + STRIDE_ALIGN + ', scanline=' + SCANLINE_ALIGN + '}' +
++            (oldS===0 && oldL===0 ? '   <<< was the 0/0 BUG default' : ''));
++        }
++      } catch(e){ console.log('[force-align] err ' + e); }
++    }
++  });
++  console.log('[*] hooked alignment-reader @ ' + m.base.add(OFF) +
++    '  forcing stride=' + STRIDE_ALIGN + ' scanline=' + SCANLINE_ALIGN);
++  return true;
++}
++
++var poll = setInterval(function(){ if (arm()) clearInterval(poll); }, 150);
++console.log('[*] op_force_align loaded (self-arming). Take ONE Auto photo.');
+diff --git a/apsfixup/docs/frida/op_outstruct_dump.js b/apsfixup/docs/frida/op_outstruct_dump.js
+new file mode 100644
+index 0000000..ee5047a
+--- /dev/null
++++ b/apsfixup/docs/frida/op_outstruct_dump.js
+@@ -0,0 +1,47 @@
++// op_outstruct_dump.js — Phase 1 of the chroma repair. Dump the turbo OUTPUT buffer struct
++// (AlgoProcessData+0x4f8) at turboHdrProcessV2 entry so we can identify luma(+0x40),
++// chroma(+0x48), and the stride/height/format fields -> compute the correct chroma offset.
++//
++// turboHdrProcessV2(AlgoProcessData* x0) @ libAlgoInterface+0x1c24b6c
++//   adb shell setenforce 0
++//   frida -U -n com.oplus.camera -l ~/sparkos/op_outstruct_dump.js > ~/sparkos/frida_out.txt
++//   >>> take ONE Auto photo (it will crash after; the dump prints first) <<<
++'use strict';
++function hx(p){ return p ? ('0x'+p.toString(16)) : '0x0'; }
++function isGarbage(v){ try{ if(v.isNull())return false; var hi=parseInt(v.shr(32).toString());
++  if(hi<0x70||hi>0x7f) return false; return v.and(ptr('0xffffffff')).compare(ptr('0x100000'))<0; }catch(e){return false;} }
++function isBuf(v){ try{ var hi=parseInt(v.shr(32).toString()); if(hi<0x70||hi>0x7f) return false;
++  return v.and(ptr('0xffffffff')).compare(ptr('0x100000'))>=0; }catch(e){return false;} }
++
++var OFF = 0x1c24b6c;   // turboHdrProcessV2
++var done = 0;
++
++function arm(){
++  var m = Process.findModuleByName('libAlgoInterface.so'); if(!m) return false;
++  Interceptor.attach(m.base.add(OFF), {
++    onEnter: function(a){
++      if (done > 3) return; done++;
++      var apd = a[0];
++      var out = apd.add(0x4f8);
++      console.log('\n=== turboHdrProcessV2  AlgoProcessData='+hx(apd)+'  outStruct='+hx(out)+'  tid='+Process.getCurrentThreadId());
++      for (var i=0;i<0x12;i++){
++        var off=i*8;
++        try{
++          var p=out.add(off).readPointer();
++          var lo=out.add(off).readU32();
++          var hi=out.add(off+4).readU32();
++          var tag='';
++          if (isBuf(p)) tag=' <-- BUF PTR';
++          else if (isGarbage(p)) tag=' <-- GARBAGE (chroma?)';
++          else if ((lo>0 && lo<30000) || (hi>0 && hi<30000)) tag=' (ints: '+lo+', '+hi+'  <- stride/height?)';
++          console.log('  +0x'+off.toString(16)+' = '+hx(p)+tag);
++        }catch(e){ console.log('  +0x'+off.toString(16)+' <unreadable>'); }
++      }
++      console.log('  (luma should be at +0x40, chroma at +0x48; note which nearby ints look like stride & height)');
++    }
++  });
++  console.log('[*] hooked turboHdrProcessV2 @ '+hx(m.base.add(OFF))+' — take ONE Auto photo.');
++  return true;
++}
++var poll=setInterval(function(){ if(arm()) clearInterval(poll); }, 150);
++console.log('[*] op_outstruct_dump loaded.');
+diff --git a/apsfixup/docs/frida/op_planelayout_probe.js b/apsfixup/docs/frida/op_planelayout_probe.js
+new file mode 100644
+index 0000000..6768863
+--- /dev/null
++++ b/apsfixup/docs/frida/op_planelayout_probe.js
+@@ -0,0 +1,95 @@
++// op_planelayout_probe.js — catch the EXACT field that makes the chroma plane 4GB-garbage.
++//
++// libAlgoProcess builds the buffer plane layout (Y/UV addrs + strides) via its gralloc wrapper,
++// then hands it up; libAlgoInterface uses it and the chroma plane comes out = align_up(luma,4GB).
++// Hook the producers and dump the per-plane addresses + strides AT PRODUCTION:
++//   APSGrallocUtils::getPlaneLayout(void*,void*,void*&,void*&)  libAlgoProcess+0x120d54
++//   camApsBufferLockPlanes(...)                                 libAlgoProcess+0x1c28e8
++// For each: dump x0..x6, and scan every pointer arg's memory for:
++//   - a LUMA/CHROMA pair (valid 0x76.. ptr at +N, 0x77..-garbage ptr at +N+8)  <-- the bug, in situ
++//   - plausible stride/scanline int32 fields (100..20000) near the planes
++// Whichever value sits where the chroma offset should be (a 0, or a garbage scanline/colStride)
++// is the port-side field to fix.
++//
++// NATIVE, Frida-17 instance API. Namespace-fixed turbo-ON build.
++//   adb shell setenforce 0
++//   frida -U -n com.oplus.camera -l ~/sparkos/op_planelayout_probe.js > ~/sparkos/frida_plane.txt
++//   >>> take ONE Auto photo (flat) <<<
++'use strict';
++function hx(p){ return p ? ('0x'+p.toString(16)) : '0x0'; }
++// REAL garbage chroma signature (from the crash dst 0x7700001000): high32 is a POINTER-band
++// value 0x70..0x7f AND low32 is tiny (<0x100000). This rejects packed-int32 pairs like
++// 0x78000000001 ({1,1920}) whose high32 (0x780) is NOT a pointer band.
++function isGarbage(v){ try{ if(v.isNull())return false; const hi=parseInt(v.shr(32).toString());
++  if(hi<0x70||hi>0x7f) return false;
++  return v.and(ptr('0xffffffff')).compare(ptr('0x100000'))<0; }catch(e){return false;} }
++function isBuf(v){ try{ const hi=parseInt(v.shr(32).toString()); if(hi<0x70||hi>0x7f)return false;
++  return v.and(ptr('0xffffffff')).compare(ptr('0x100000'))>=0; }catch(e){return false;} }
++// precise align_up(luma,4GB) test: chroma_high == luma_high+1 and chroma_low tiny
++function isAlignUpChroma(luma,chroma){ try{ if(!isBuf(luma)) return false;
++  if(!chroma.shr(32).equals(luma.shr(32).add(1))) return false;
++  return chroma.and(ptr('0xffffffff')).compare(ptr('0x100000'))<0; }catch(e){return false;} }
++function readable(v){ try{ return !v.isNull() && Process.findRangeByAddress(v)!==null; }catch(e){return false;} }
++function i32(p,o){ try{ return p.add(o).readS32(); }catch(e){ return null; } }
++
++// dump a region: flag plane ptrs, luma/chroma pairs, and small-int (stride/scanline) fields
++function dumpRegion(label, p, words){
++  if(!readable(p)) return;
++  console.log('    '+label+' @'+hx(p)+':');
++  for(let i=0;i<words;i++){
++    let v; try{ v=p.add(i*8).readPointer(); }catch(e){ break; }
++    const off=i*8;
++    let nxt=null; try{ nxt=p.add(off+8).readPointer(); }catch(e){}
++    if(isBuf(v) && nxt && isAlignUpChroma(v,nxt)){
++      const so=i32(p,off+8+8), so2=i32(p,off+8+0xc);   // ints right after the chroma slot
++      console.log('      +0x'+off.toString(16)+' luma='+hx(v)+'  +0x'+(off+8).toString(16)
++        +' chroma='+hx(nxt)+'   <<<<< REAL BUG: chroma=align_up(luma,4GB)  [next ints: '+so+','+so2+']');
++    }
++    else if(isBuf(v) && nxt && isGarbage(nxt))
++      console.log('      +0x'+off.toString(16)+' luma='+hx(v)+'  +0x'+(off+8).toString(16)+' chroma='+hx(nxt)+'   <<<<< chroma garbage');
++    else if(isBuf(v))  console.log('      +0x'+off.toString(16)+' = '+hx(v)+'   (buf ptr)');
++    else if(isGarbage(v)) console.log('      +0x'+off.toString(16)+' = '+hx(v)+'   <<<<< GARBAGE ptr (ptr-band hi, tiny lo)');
++    else {
++      // int32 pair: maybe stride/scanline
++      const a=i32(p,off), b=i32(p,off+4);
++      if(a!==null && ((a>=64&&a<=30000)||(b>=64&&b<=30000)))
++        console.log('      +0x'+off.toString(16)+' int32 = '+a+' , '+b+'   (stride/scanline/offset?)');
++    }
++  }
++}
++
++let counts={};
++function gate(n){ counts[n]=(counts[n]||0)+1; return counts[n]<=4; }
++
++function hookFn(addr,name,nargs){
++  Interceptor.attach(addr,{
++    onEnter(a){ this.go=gate(name); if(!this.go) return; this.a=[]; for(let i=0;i<nargs;i++) this.a.push(a[i]);
++      console.log('\n===== '+name+' (enter) tid='+Process.getCurrentThreadId()+' =====');
++      for(let i=0;i<nargs;i++) console.log('  x'+i+' = '+hx(this.a[i])+(isGarbage(this.a[i])?'  GARBAGE':(isBuf(this.a[i])?'  (buf)':'')));
++      for(let i=0;i<nargs;i++) if(readable(this.a[i])) dumpRegion('x'+i, this.a[i], 24);
++    },
++    onLeave(r){ if(!this.go) return;
++      console.log('  -- '+name+' (leave) ret='+hx(r)+' --');
++      // out-params written during call: re-scan pointer args, and deref void** out refs
++      for(let i=0;i<this.a.length;i++){
++        const ai=this.a[i]; if(!readable(ai)) continue;
++        dumpRegion('x'+i+'(post)', ai, 24);
++        // if x_i is a void** out-ref, follow it
++        try{ const inner=ai.readPointer(); if(readable(inner) && inner.compare(ai)!==0) dumpRegion('*x'+i, inner, 16); }catch(e){}
++      }
++    }
++  });
++  console.log('[+] hooked '+name+' @ '+hx(addr));
++}
++
++let done=false;
++function arm(){
++  if(done) return;
++  const m=Process.findModuleByName('libAlgoProcess.so'); if(!m) return;
++  hookFn(m.base.add(0x120d54),'APSGrallocUtils::getPlaneLayout',5);
++  hookFn(m.base.add(0x1c28e8),'camApsBufferLockPlanes',6);
++  done=true;
++  console.log('[*] armed — take ONE Auto photo. Look for the LUMA/CHROMA line + the stride/scanline near it.');
++}
++const poll=setInterval(function(){ arm(); if(done) clearInterval(poll); },150);
++console.log('[*] op_planelayout_probe loaded (self-arming, libAlgoProcess).');
+diff --git a/apsfixup/docs/frida/op_qnn_init_probe.js b/apsfixup/docs/frida/op_qnn_init_probe.js
+new file mode 100644
+index 0000000..2ed7fea
+--- /dev/null
++++ b/apsfixup/docs/frida/op_qnn_init_probe.js
+@@ -0,0 +1,169 @@
++// op_qnn_init_probe.js — THE decisive final test.
++//
++// Hypothesis (external reviewer #2, never instrumented): on the port, ArcSoft's HTP/QNN
++// runtime init FAILS, so turbo silently falls back to a CPU path whose allocator yields the
++// 4GB-aligned garbage dst. Static check already proved the QNN libs + DSP skel are PRESENT
++// at the same paths as stock (libQnnHtp.so @ /odm/lib64, libarc_htp_driver_skel.so @
++// /odm/lib/rfsa/adsp). So the ONLY open question is the RUNTIME result of InitQNN.
++//
++// This probe answers three things in ONE capture, all NATIVE (no Java hooks):
++//   (1) Is ARC_Turbo_RAW_InitQNN CALLED, and what does it RETURN?
++//          ret == 0 (MOK)  -> QNN init SUCCEEDS  => CPU-fallback theory is DEAD; the garbage
++//                              dst is computed on the HTP/working path (back to descriptor bug)
++//          ret != 0        -> QNN init FAILS     => smoking gun: CPU fallback -> garbage dst
++//          never called    -> turbo never reaches QNN init (wrong path selected upstream)
++//   (2) Does ANY libQnn*/skel/cdsp dlopen FAIL? (android_dlopen_ext/dlopen returning NULL)
++//          a NULL return on a QNN/HTP/skel path is the concrete reason InitQNN would fail.
++//   (3) Does the turbo buffer ever get FastRPC-mapped into the DSP SMMU? (ioctl 'R' nr 6/10)
++//          if QNN works there should be DSP map ops; if absent, buffer never reaches the DSP.
++//
++// LIGHT: no INVOKE hook, no hexdump (that's what bogged earlier runs). dlopen logging is
++// filtered to QNN/HTP/arcsoft/cdsp/skel names only.
++//
++// USAGE — run on the TURBO-ON build (d1bb5e10; InitQNN only runs when turbo executes):
++//   adb shell setenforce 0
++//   frida -U -n com.oplus.camera -l ~/sparkos/op_qnn_init_probe.js > ~/sparkos/frida_qnn.txt
++//   >>> HDR OFF, point at a plain evenly-lit wall, take ONE Auto/Photo photo <<<
++//   (flat non-HDR scene so turbo COMPLETES instead of hitting the §2a crash mid-init)
++//   If it still crashes before the verdict, the InitQNN onLeave line below will already have
++//   printed — that line alone is the answer.
++'use strict';
++
++function hx(p){ return p ? ('0x'+p.toString(16)) : '0x0'; }
++function MB(n){ return (n/(1024*1024)).toFixed(2)+' MB'; }
++function u64(p,off){ try { return p.add(off).readU64(); } catch(e){ return ptr(0); } }
++function s32(p,off){ try { return p.add(off).readS32(); } catch(e){ return -999; } }
++function n64(v){ try { return Number(v); } catch(e){ return 0; } }
++
++// Frida 17 removed the static Module.findExportByName(mod, sym). Resolve via the instance
++// method (works in 17) with global/old-API fallbacks so the hooks ACTUALLY install.
++function resolveExport(modName, sym){
++  try { const m = Process.findModuleByName(modName); if (m && m.findExportByName){ const a=m.findExportByName(sym); if(a) return a; } } catch(e){}
++  try { if (Module.getGlobalExportByName){ const a=Module.getGlobalExportByName(sym); if(a) return a; } } catch(e){}
++  try { if (Module.findGlobalExportByName){ const a=Module.findGlobalExportByName(sym); if(a) return a; } } catch(e){}
++  try { if (Module.findExportByName){ const a=Module.findExportByName(modName, sym); if(a) return a; } } catch(e){}  // old API
++  return null;
++}
++
++function vaTag(p){
++  try {
++    const lo = p.and(ptr('0xffffffff'));
++    if (lo.isNull()) return '   <<< 4GB-ALIGNED (low32=0) = garbage/translation signature';
++    const hi = parseInt(p.shr(32).toString());
++    if (lo.compare(ptr('0x10000')) < 0) return '   <<< low32 tiny (0x'+lo.toString(16)+') = truncated-pointer signature';
++    if (hi >= 0x70 && hi <= 0x74) return '   (valid camera band)';
++  } catch(e){}
++  return '';
++}
++
++// ---- (1) ARC_Turbo_RAW_InitQNN / UnInitQNN return value ----------------------------------
++function hookByName(sym, isInit){
++  // resolve across all loaded modules (symbol lives in libarcsoft_turbo_raw.so, loaded lazily)
++  const addr = resolveExport('libarcsoft_turbo_raw.so', sym);
++  if (!addr) { return false; }   // quiet: the 200ms poller keeps retrying until the lib loads
++  Interceptor.attach(addr, {
++    onEnter(a){ this.t = Date.now(); },
++    onLeave(r){
++      const ret = r.toInt32();
++      console.log('\n############################################################');
++      console.log('## '+sym+'  RETURNED  ret=' + ret + '  (' + hx(r) + ')'
++                  + '   tid=' + Process.getCurrentThreadId());
++      if (isInit) {
++        if (ret === 0)
++          console.log('## VERDICT: ret==0 => QNN/HTP init SUCCEEDED on the port.');
++        else
++          console.log('## VERDICT: ret!=0 => QNN/HTP init FAILED  => CPU-FALLBACK path = the bug.');
++      }
++      console.log('############################################################\n');
++    }
++  });
++  console.log('[+] hooked ' + sym + ' @ ' + hx(addr));
++  return true;
++}
++
++let initHooked = false, uninitHooked = false;
++function tryHookQnn(){
++  if (!initHooked)  initHooked  = hookByName('ARC_Turbo_RAW_InitQNN', true);
++  if (!uninitHooked) uninitHooked = hookByName('ARC_Turbo_RAW_UnInitQNN', false);
++}
++
++// ---- (2) dlopen failures on QNN/HTP/arcsoft/cdsp/skel paths -------------------------------
++function isInteresting(name){
++  if (!name) return false;
++  return /qnn|htp|arcsoft|cdsp|skel|libAlgo|turbo/i.test(name);
++}
++function hookDlopen(sym){
++  const p = resolveExport('libdl.so', sym);
++  if (!p) return;
++  Interceptor.attach(p, {
++    onEnter(a){ try { this.name = a[0].isNull() ? '<null>' : a[0].readCString(); } catch(e){ this.name = '?'; } },
++    onLeave(r){
++      const interesting = isInteresting(this.name);
++      // when a QNN/HTP lib gets loaded, (re)try resolving InitQNN
++      if (interesting && !r.isNull()) tryHookQnn();
++      if (r.isNull() && interesting) {
++        console.log('\n[dlopen FAIL] '+sym+'("'+this.name+'") -> NULL');
++        try { const de = resolveExport('libdl.so','dlerror');
++              if (de){ const msg = new NativeFunction(de,'pointer',[])(); if(!msg.isNull()) console.log('   dlerror: '+msg.readCString()); } } catch(e){}
++        console.log('   ^^^ a failed QNN/HTP/skel load is a concrete reason InitQNN would fail.\n');
++      } else if (interesting) {
++        console.log('[dlopen ok] '+this.name);
++      }
++    }
++  });
++}
++
++// ---- (3) fastrpc DSP map ops (nr 6 MMAP / nr 10 MEM_MAP / nr 1 ALLOC) ---------------------
++function hookIoctl(){
++  const p = resolveExport('libc.so','ioctl');
++  if (!p) return;
++  Interceptor.attach(p, {
++    onEnter(a){
++      this.nr = -1;
++      const req = (a[1].toUInt32 ? a[1].toUInt32() : (a[1].toInt32()>>>0));
++      if (((req>>>8)&0xff) !== 0x52) return;            // not fastrpc 'R'
++      const nr = req & 0xff;
++      if (nr!==1 && nr!==6 && nr!==10) return;          // ALLOC/MMAP/MEM_MAP only (no INVOKE)
++      this.nr = nr; this.argp = a[2];
++      if (nr===6){ this.fd=s32(this.argp,0); this.size=u64(this.argp,16); this.vin=u64(this.argp,8); }
++      else if (nr===10){ this.fd=s32(this.argp,4); this.size=u64(this.argp,24); this.vin=u64(this.argp,16); }
++      else { this.size=u64(this.argp,8); }
++    },
++    onLeave(r){
++      if (this.nr < 0) return;
++      if (this.nr === 1){
++        const fd = s32(this.argp,0);
++        console.log('[fastrpc ALLOC_DMA_BUFF] '+MB(n64(this.size))+' -> fd='+fd+' ret='+r.toInt32()
++          + (n64(this.size)>=16*1024*1024 ? '   <<< BIG' : ''));
++        return;
++      }
++      const vout = u64(this.argp, this.nr===6?24:32);
++      const nm = (this.nr===6)?'MMAP':'MEM_MAP';
++      console.log('[fastrpc '+nm+' -> DSP] fd='+this.fd+' '+MB(n64(this.size))
++        +' vaddrin='+hx(this.vin)+' vaddrout='+hx(vout)+vaTag(vout)+'  ret='+r.toInt32()
++        +'  tid='+Process.getCurrentThreadId());
++    }
++  });
++  console.log('[+] hooked ioctl (fastrpc ALLOC/MMAP/MEM_MAP only)');
++}
++
++console.log('[*] op_qnn_init_probe loaded. Run on TURBO-ON build; shoot a FLAT non-HDR scene.');
++hookDlopen('android_dlopen_ext');
++hookDlopen('dlopen');
++hookIoctl();
++tryHookQnn();   // in case the turbo lib is already loaded at attach time
++
++// SELF-ARMING: poll every 200ms and hook InitQNN the instant libarcsoft_turbo_raw.so loads,
++// no matter HOW it loads (dlopen, preload, dlmopen, linker namespace). Announces once when
++// the lib first appears, stops polling once both symbols are hooked.
++let announced = false;
++const poll = setInterval(function(){
++  if (!announced) {
++    let m = null; try { m = Process.findModuleByName('libarcsoft_turbo_raw.so'); } catch(e){}
++    if (m) { announced = true; console.log('[*] libarcsoft_turbo_raw.so now loaded @ '+hx(m.base)+' — arming InitQNN hook'); }
++  }
++  tryHookQnn();
++  if (initHooked && uninitHooked) { clearInterval(poll); console.log('[*] InitQNN + UnInitQNN hooked; poller stopped.'); }
++}, 200);
++
++console.log('[*] watching for ARC_Turbo_RAW_InitQNN return + QNN/HTP dlopen failures + DSP map ops (self-arming poll active).');
+-- 
+2.54.0
+
