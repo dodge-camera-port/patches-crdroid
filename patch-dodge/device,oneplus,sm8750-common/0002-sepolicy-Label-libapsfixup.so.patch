@@ -1,0 +1,24 @@
+From fec2b6a5e2ceeb3360565c6e59452c82d1fba5a6 Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Mon, 8 Jun 2026 14:30:51 +0800
+Subject: [PATCH 2/2] sepolicy: Label libapsfixup.so
+
+06-08 14:05:22.329  2149  2149 W binder:2149_1: type=1400 audit(0.0:53): avc:  denied  { read } for  name=libapsfixup.so dev=dm-0 ino=73732591 scontext=u:r:cameraserver:s0 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=0
+06-08 14:05:22.336  2149  2279 E vndksupport: Could not load odm/lib64/libAlgoProcess.so from sphal namespace: dlopen failed: library libapsfixup.so not found: needed by /odm/lib64/libAlgoProcess.so in namespace sphal.
+---
+ sepolicy/vendor/file_contexts | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/sepolicy/vendor/file_contexts b/sepolicy/vendor/file_contexts
+index c7a852a..84126d8 100644
+--- a/sepolicy/vendor/file_contexts
++++ b/sepolicy/vendor/file_contexts
+@@ -1,2 +1,5 @@
+ # Vibrator
+ /vendor/bin/hw/vendor\.qti\.hardware\.vibrator\.service\.oplus_sm8750    u:object_r:hal_vibrator_default_exec:s0
++
++# APS Fixup
++/odm/lib64/libapsfixup\.so    u:object_r:same_process_hal_file:s0
+-- 
+2.54.0
+
