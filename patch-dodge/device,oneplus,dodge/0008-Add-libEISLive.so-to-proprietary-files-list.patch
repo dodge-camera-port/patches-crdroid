@@ -1,0 +1,24 @@
+From 7cb609b30a2b6dc2a9164d4965e2556e8bb72ef3 Mon Sep 17 00:00:00 2001
+From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
+Date: Tue, 9 Jun 2026 19:39:39 +0200
+Subject: [PATCH 8/9] Add libEISLive.so to proprietary files list
+
+---
+ proprietary-files.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/proprietary-files.txt b/proprietary-files.txt
+index a152e2d..903bde5 100644
+--- a/proprietary-files.txt
++++ b/proprietary-files.txt
+@@ -881,6 +881,7 @@ odm/lib64/libCS.so
+ odm/lib64/libCaptureBokeh.so
+ odm/lib64/libDocRectification.so
+ odm/lib64/libEIS.so
++odm/lib64/libEISLive.so
+ odm/lib64/libFDClite.so
+ odm/lib64/libFaceBeautyJni.so
+ odm/lib64/libFaceBeautyPre.so
+-- 
+2.54.0
+
