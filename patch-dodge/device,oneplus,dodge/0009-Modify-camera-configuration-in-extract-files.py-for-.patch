@@ -1,0 +1,36 @@
+From 7c37ff4db640183f5a2c4c6aa381d8f8e8023d60 Mon Sep 17 00:00:00 2001
+From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
+Date: Tue, 9 Jun 2026 19:41:29 +0200
+Subject: [PATCH 9/9] Modify camera configuration in extract-files.py for
+ enabling Live Photos
+
+Update camera configuration to enable SWFD for third camera unit and face detection support. This enable Live Photos
+---
+ extract-files.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/extract-files.py b/extract-files.py
+index a2d5676..20284ec 100755
+--- a/extract-files.py
++++ b/extract-files.py
+@@ -51,6 +51,7 @@ blob_fixups: blob_fixups_user_type = {
+     (
+         'odm/lib64/libAncHumanSegFigureFusion.so',
+         'odm/lib64/libEIS.so',
++        'odm/lib64/libEISLive.so',
+         'odm/lib64/libHIS.so',
+         'odm/lib64/libOPAlgoCamAiBeautyFaceRetouchCn.so',
+         'odm/lib64/libOPAlgoCamAiUnifySkin.so',
+@@ -110,6 +111,9 @@ blob_fixups: blob_fixups_user_type = {
+         .replace_needed('libui.so', 'libui-stock.so'),
+     'vendor/lib64/libui-stock.so': blob_fixup()
+         .replace_needed('android.hardware.graphics.common-V5-ndk.so', 'android.hardware.graphics.common-V7-ndk.so'),
++    'odm/etc/camera/CameraHWConfiguration.config': blob_fixup()
++        .regex_replace('enableSWfdForThirdCamUnit   = FALSE', 'enableSWfdForThirdCamUnit   = TRUE')
++        .regex_replace('fdSupport                 = FALSE;', 'fdSupport                 = TRUE;'),
+ }  # fmt: skip
+ 
+ module = ExtractUtilsModule(
+-- 
+2.54.0
+
