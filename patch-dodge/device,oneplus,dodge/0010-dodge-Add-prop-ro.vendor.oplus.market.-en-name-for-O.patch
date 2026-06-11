@@ -1,0 +1,25 @@
+From 0db13b9fbb05f7d2c09272445e038756d8e4b855 Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Thu, 11 Jun 2026 22:19:06 +0800
+Subject: [PATCH 10/10] dodge: Add prop ro.vendor.oplus.market.(en)name for
+ Oplus camera watermark
+
+---
+ vendor.prop | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/vendor.prop b/vendor.prop
+index f22d3f1..f6d62f1 100644
+--- a/vendor.prop
++++ b/vendor.prop
+@@ -15,3 +15,7 @@ ro.product.marketname=OnePlus 13
+ 
+ # USB
+ vendor.usb.product_string=OnePlus 13
++
++# Camera
++ro.vendor.oplus.market.enname=OnePlus 13
++ro.vendor.oplus.market.name=OnePlus 13
+-- 
+2.54.0
+
