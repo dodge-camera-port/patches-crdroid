@@ -1,0 +1,57 @@
+From e332285d14894040e153959c6e52e0c3e3913d15 Mon Sep 17 00:00:00 2001
+From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
+Date: Wed, 17 Jun 2026 16:19:33 +0200
+Subject: [PATCH 3/3] Fix HDR encoder and decoder in media_codecs_sun.xml
+
+Added regex replacements to fix HDR encoder and decoder configurations in media_codecs_sun.xml.
+---
+ extract-files.py | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/extract-files.py b/extract-files.py
+index 6559ff0..a4893a4 100755
+--- a/extract-files.py
++++ b/extract-files.py
+@@ -141,6 +141,39 @@ blob_fixups: blob_fixups_user_type = {
+         .add_needed('libbase.so'),
+     'vendor/lib64/libwfdmmsrc_proprietary.so': blob_fixup()
+         .replace_needed('android.media.audio.common.types-V2-ndk.so', 'android.media.audio.common.types-V3-ndk.so'),
++    'vendor/etc/media_codecs_sun.xml': blob_fixup()
++        #FIX HDR ENCODER
++        .regex_replace(
++            r'<!--\s*<MediaCodec name="c2\.qti\.dv\.encoder" type="video/dolby-vision">',
++            r'<MediaCodec name="c2.qti.dv.encoder" type="video/dolby-vision">'
++        )
++        .regex_replace(
++            r'(<Limit name="performance-point-7680x4320" value="30" />\s*)</MediaCodec>\s*-->',
++            r'\1    <Feature name="profile-and-level" value="256-8" />\n'
++            r'            <Feature name="profile-and-level" value="256-256" />\n'
++            r'            <Feature name="profile-and-level" value="256-1024" />\n'
++            r'        </MediaCodec>'
++        )
++        #FIX HDR DECODER
++        .regex_replace(
++            r'<!--\s*<MediaCodec name="c2\.qti\.dv\.decoder" type="video/dolby-vision" >',
++            r'<MediaCodec name="c2.qti.dv.decoder" type="video/dolby-vision" >'
++        )
++        .regex_replace(
++            r'(<Limit name="performance-point-8192x4320" value="48" />\s*)</MediaCodec>',
++            r'\1    <Feature name="profile-and-level" value="256-8" />\n'
++            r'            <Feature name="profile-and-level" value="256-256" />\n'
++            r'            <Feature name="profile-and-level" value="256-1024" />\n'
++            r'        </MediaCodec>'
++        )
++        #FIX HDR DECODER SECURE
++        .regex_replace(
++            r'(<Limit name="performance-point-4096x2304" value="120" />\s*)</MediaCodec>\s*-->',
++            r'\1    <Feature name="profile-and-level" value="256-8" />\n'
++            r'            <Feature name="profile-and-level" value="256-256" />\n'
++            r'            <Feature name="profile-and-level" value="256-1024" />\n'
++            r'        </MediaCodec>'
++        ),
+ }  # fmt: skip
+ 
+ module = ExtractUtilsModule(
+-- 
+2.54.0
+

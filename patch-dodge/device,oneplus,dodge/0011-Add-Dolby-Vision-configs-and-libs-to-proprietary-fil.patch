@@ -1,0 +1,34 @@
+From 225b7a69efaef1311a4fc7c95999d8df1c3e015e Mon Sep 17 00:00:00 2001
+From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
+Date: Wed, 17 Jun 2026 16:20:04 +0200
+Subject: [PATCH 11/11] Add Dolby Vision configs and libs to proprietary files
+
+Added Dolby Vision configuration files and libraries.
+---
+ proprietary-files.txt | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/proprietary-files.txt b/proprietary-files.txt
+index 903bde5..6fba7de 100644
+--- a/proprietary-files.txt
++++ b/proprietary-files.txt
+@@ -1646,4 +1646,16 @@ odm/etc/wifi/peach/regdb_version
+ vendor/lib64/libutils.so:vendor/lib64/libutils-stock.so;FIX_SONAME
+ vendor/lib64/libui.so:vendor/lib64/libui-stock.so;FIX_SONAME
+ 
++# Dolby Vision Configs & Libs
++odm/lib64/vendor.dolby.dvs-V1-ndk.so
++odm/etc/dolby/display/dolby_vision.cfg
++odm/etc/dolby/dolby_vision.cfg
++odm/etc/media_codecs_dolby_vision.xml
++my_product/etc/dolby_vision.cfg:product/etc/dolby_vision.cfg
++my_product/lib64/libdolbyeffect_4.1.so:product/lib64/libdolbyeffect_4.1.so
++my_product/lib64/liboplusdolbyeffect_4.1.so:product/lib64/liboplusdolbyeffect_4.1.so
++system/etc/dolby_vision.cfg
++vendor/etc/dolby_vision.cfg
++vendor/persist/display/dolby_vision.cfg
++
+ # vi:ft=conf
+-- 
+2.54.0
+

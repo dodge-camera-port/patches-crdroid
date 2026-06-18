@@ -1,7 +1,7 @@
 From d6654b364cc7ce4eb02f548e73ae206b45c294d8 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sun, 31 May 2026 19:02:32 +0800
-Subject: [PATCH 1/2] CameraService: Add OnePlus camera extension support for
+Subject: [PATCH 1/6] CameraService: Add OnePlus camera extension support for
  zoom
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8

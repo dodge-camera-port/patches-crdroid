@@ -1,7 +1,7 @@
 From 7c37ff4db640183f5a2c4c6aa381d8f8e8023d60 Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Tue, 9 Jun 2026 19:41:29 +0200
-Subject: [PATCH 09/10] Modify camera configuration in extract-files.py for
+Subject: [PATCH 09/11] Modify camera configuration in extract-files.py for
  enabling Live Photos
 
 Update camera configuration to enable SWFD for third camera unit and face detection support. This enable Live Photos
