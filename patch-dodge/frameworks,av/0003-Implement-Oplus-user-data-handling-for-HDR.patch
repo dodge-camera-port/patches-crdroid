@@ -1,7 +1,7 @@
-From 1af7f388787dd7cce29c95bb26f38a2a5c8be75b Mon Sep 17 00:00:00 2001
+From 435c609e9ac0b93756778a2acad8ca79ecc45503 Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Wed, 17 Jun 2026 16:04:28 +0200
-Subject: [PATCH 4/6] Implement Oplus user data handling for HDR
+Subject: [PATCH 3/5] Implement Oplus user data handling for HDR
 
 Add OplusUserData parameter handling for HDR metadata passthrough to MPEG4Writer
 ---
@@ -9,7 +9,7 @@ Add OplusUserData parameter handling for HDR metadata passthrough to MPEG4Writer
  1 file changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/media/libmediaplayerservice/StagefrightRecorder.cpp b/media/libmediaplayerservice/StagefrightRecorder.cpp
-index eb4d05d541..f1688fa15c 100644
+index eb4d05d..f1688fa 100644
 --- a/media/libmediaplayerservice/StagefrightRecorder.cpp
 +++ b/media/libmediaplayerservice/StagefrightRecorder.cpp
 @@ -1127,6 +1127,10 @@ status_t StagefrightRecorder::setParameter(

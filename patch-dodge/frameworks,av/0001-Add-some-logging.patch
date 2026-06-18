@@ -1,7 +1,7 @@
-From a985608795ce5be73868822761c633861e97f18b Mon Sep 17 00:00:00 2001
+From e956915187545e49bb18d7803901d4ed0770058f Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Sun, 31 May 2026 16:56:22 +0300
-Subject: [PATCH 2/6] Add some logging
+Subject: [PATCH 1/5] Add some logging
 
 Change-Id: I30d163be03a75acf5f6413a2203cb7d6c0b2cd2e
 ---
@@ -9,7 +9,7 @@ Change-Id: I30d163be03a75acf5f6413a2203cb7d6c0b2cd2e
  1 file changed, 48 insertions(+)
 
 diff --git a/services/camera/libcameraservice/device3/Camera3OutputUtils.cpp b/services/camera/libcameraservice/device3/Camera3OutputUtils.cpp
-index 094395c797..d799168641 100644
+index 094395c..d799168 100644
 --- a/services/camera/libcameraservice/device3/Camera3OutputUtils.cpp
 +++ b/services/camera/libcameraservice/device3/Camera3OutputUtils.cpp
 @@ -853,6 +853,54 @@ void processCaptureResult(CaptureOutputStates& states, const camera_capture_resu
