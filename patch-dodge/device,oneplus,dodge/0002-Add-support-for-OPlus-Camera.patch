@@ -1,7 +1,7 @@
 From bd1cd0ae6b97a7cd47d77a05445e2e36f655cc46 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Fri, 27 Mar 2026 17:00:51 +0800
-Subject: [PATCH 02/12] Add support for OPlus Camera
+Subject: [PATCH 02/13] Add support for OPlus Camera
 
 ---
  BoardConfig.mk        | 2 ++

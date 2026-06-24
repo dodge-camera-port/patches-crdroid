@@ -1,7 +1,7 @@
 From 0e3a82f308a5328c289a0578bfba0e508f401f30 Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Sun, 7 Jun 2026 20:20:27 +0300
-Subject: [PATCH 07/12] apksfixup: Add docs and frida probs
+Subject: [PATCH 07/13] apksfixup: Add docs and frida probs
 
 ---
  apsfixup/docs/PORTING.md                    | 144 +++++++++++++++++

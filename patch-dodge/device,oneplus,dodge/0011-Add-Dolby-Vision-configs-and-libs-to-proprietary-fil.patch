@@ -1,7 +1,7 @@
 From 3d7e90a57187f9e62ae11f1490e08244d4327fea Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Wed, 17 Jun 2026 16:20:04 +0200
-Subject: [PATCH 11/12] Add Dolby Vision configs and libs to proprietary files
+Subject: [PATCH 11/13] Add Dolby Vision configs and libs to proprietary files
 
 Added Dolby Vision configuration files and libraries.
 ---

@@ -1,7 +1,7 @@
 From 9258206d0895fbbbdf514a95060098c0d9b63620 Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Tue, 9 Jun 2026 19:39:39 +0200
-Subject: [PATCH 08/12] Add libEISLive.so to proprietary files list
+Subject: [PATCH 08/13] Add libEISLive.so to proprietary files list
 
 ---
  proprietary-files.txt | 1 +

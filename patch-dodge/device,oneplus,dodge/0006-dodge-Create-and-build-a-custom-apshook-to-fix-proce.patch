@@ -1,7 +1,7 @@
 From 78bb9b1b6dc980ec5ed0475aa74d7d3645e1d675 Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Sun, 7 Jun 2026 20:20:07 +0300
-Subject: [PATCH 06/12] dodge: Create and build a custom apshook to fix
+Subject: [PATCH 06/13] dodge: Create and build a custom apshook to fix
  processing in oneplus camera
 
 ---
