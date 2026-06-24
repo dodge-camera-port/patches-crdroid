@@ -1,4 +1,4 @@
-From 430f7e19b547e10aed18a050f649adc51b574580 Mon Sep 17 00:00:00 2001
+From 78bb9b1b6dc980ec5ed0475aa74d7d3645e1d675 Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Sun, 7 Jun 2026 20:20:07 +0300
 Subject: [PATCH 06/12] dodge: Create and build a custom apshook to fix
@@ -253,7 +253,7 @@ index 0000000..e6542c1
 +    }
 +}
 diff --git a/extract-files.py b/extract-files.py
-index 11ee2d7..a2d5676 100755
+index 7575432..5e77262 100755
 --- a/extract-files.py
 +++ b/extract-files.py
 @@ -21,6 +21,9 @@ namespace_imports = [

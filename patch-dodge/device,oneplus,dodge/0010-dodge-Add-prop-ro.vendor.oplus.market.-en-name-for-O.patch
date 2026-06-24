@@ -1,4 +1,4 @@
-From 0db13b9fbb05f7d2c09272445e038756d8e4b855 Mon Sep 17 00:00:00 2001
+From 6dc52252b14e81808a4e067832dafab650fcbb27 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Thu, 11 Jun 2026 22:19:06 +0800
 Subject: [PATCH 10/12] dodge: Add prop ro.vendor.oplus.market.(en)name for

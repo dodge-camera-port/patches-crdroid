@@ -1,4 +1,4 @@
-From 225b7a69efaef1311a4fc7c95999d8df1c3e015e Mon Sep 17 00:00:00 2001
+From 3d7e90a57187f9e62ae11f1490e08244d4327fea Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Wed, 17 Jun 2026 16:20:04 +0200
 Subject: [PATCH 11/12] Add Dolby Vision configs and libs to proprietary files
@@ -9,10 +9,10 @@ Added Dolby Vision configuration files and libraries.
  1 file changed, 12 insertions(+)
 
 diff --git a/proprietary-files.txt b/proprietary-files.txt
-index 903bde5..6fba7de 100644
+index 210d106..85ac38e 100644
 --- a/proprietary-files.txt
 +++ b/proprietary-files.txt
-@@ -1646,4 +1646,16 @@ odm/etc/wifi/peach/regdb_version
+@@ -1640,4 +1640,16 @@ odm/etc/wifi/peach/regdb_version
  vendor/lib64/libutils.so:vendor/lib64/libutils-stock.so;FIX_SONAME
  vendor/lib64/libui.so:vendor/lib64/libui-stock.so;FIX_SONAME
  

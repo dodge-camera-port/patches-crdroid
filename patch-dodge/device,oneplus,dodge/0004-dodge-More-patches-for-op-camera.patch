@@ -1,4 +1,4 @@
-From a636f1a42a6f44c80e437ebe574f031c5d5f069a Mon Sep 17 00:00:00 2001
+From 0c7136fe46ebdccac8a36d2b412b0ea2e32f1951 Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Tue, 2 Jun 2026 14:14:24 +0300
 Subject: [PATCH 04/12] dodge: More patches for op camera
@@ -8,7 +8,7 @@ Subject: [PATCH 04/12] dodge: More patches for op camera
  1 file changed, 28 insertions(+), 1 deletion(-)
 
 diff --git a/extract-files.py b/extract-files.py
-index 552b71d..3481c58 100755
+index 1c2b29a..e8f63dd 100755
 --- a/extract-files.py
 +++ b/extract-files.py
 @@ -35,7 +35,23 @@ blob_fixups: blob_fixups_user_type = {
@@ -51,9 +51,9 @@ index 552b71d..3481c58 100755
 +            b'vec4\\(dstYuv\\.r, dstYuv\\.b, dstYuv\\.g, 1\\.0\\)',
 +            b'vec4(dstYuv.r, dstYuv.g, dstYuv.b, 1.0)',
 +        ),
-     'odm/lib64/libextensionlayer.so': blob_fixup()
-         .replace_needed('vendor.oplus.hardware.performance-V1-ndk_platform.so', 'vendor.oplus.hardware.performance-V1-ndk.so'),
      'odm/lib64/libsensorbridge.so': blob_fixup()
+         .replace_needed('android.hardware.sensors-V2-ndk.so', 'android.hardware.sensors-V3-ndk.so'),
+     'vendor/etc/libnfc-nci.conf': blob_fixup()
 -- 
 2.54.0
 

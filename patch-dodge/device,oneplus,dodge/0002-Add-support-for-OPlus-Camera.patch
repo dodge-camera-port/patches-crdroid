@@ -1,4 +1,4 @@
-From 6c3b968c6b76f781e0a0668f022aa65059306578 Mon Sep 17 00:00:00 2001
+From bd1cd0ae6b97a7cd47d77a05445e2e36f655cc46 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Fri, 27 Mar 2026 17:00:51 +0800
 Subject: [PATCH 02/12] Add support for OPlus Camera
@@ -32,7 +32,7 @@ index 3e82153..11aa23b 100644
 +# Camera
 +$(call inherit-product-if-exists, vendor/oplus/camera/opluscamera.mk)
 diff --git a/extract-files.py b/extract-files.py
-index 0e56847..be64e99 100755
+index 3b00c43..17da86d 100755
 --- a/extract-files.py
 +++ b/extract-files.py
 @@ -24,9 +24,6 @@ namespace_imports = [
@@ -45,7 +45,7 @@ index 0e56847..be64e99 100755
      'odm/etc/init/init.camera_process.rc': blob_fixup()
          .regex_replace('    delete_recursion', '    #delete_recursion'),
      (
-@@ -73,6 +70,11 @@ blob_fixups: blob_fixups_user_type = {
+@@ -71,6 +68,11 @@ blob_fixups: blob_fixups_user_type = {
          'vendor/lib64/libcamxods.so',
      ): blob_fixup()
          .replace_needed('libtinyxml2.so', 'libtinyxml2-v34.so'),
@@ -58,10 +58,10 @@ index 0e56847..be64e99 100755
  
  module = ExtractUtilsModule(
 diff --git a/proprietary-files.txt b/proprietary-files.txt
-index 52ebce7..a152e2d 100644
+index 966336f..63a3734 100644
 --- a/proprietary-files.txt
 +++ b/proprietary-files.txt
-@@ -1641,4 +1641,8 @@ odm/etc/wifi/peach/bdwlang.elf
+@@ -1635,4 +1635,8 @@ odm/etc/wifi/peach/bdwlang.elf
  odm/etc/wifi/peach/regdb.bin
  odm/etc/wifi/peach/regdb_version
  
