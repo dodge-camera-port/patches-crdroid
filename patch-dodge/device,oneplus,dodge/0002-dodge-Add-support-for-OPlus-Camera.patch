@@ -1,8 +1,13 @@
-From bd1cd0ae6b97a7cd47d77a05445e2e36f655cc46 Mon Sep 17 00:00:00 2001
+From d969d311ac34666f76b531426dd3912c53b889ba Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Fri, 27 Mar 2026 17:00:51 +0800
-Subject: [PATCH 02/13] Add support for OPlus Camera
+Subject: [PATCH 2/7] dodge: Add support for OPlus Camera
 
+Squashed:
+    Include vendor/oplus/camera/
+    Add BUILD_BROKEN_VENDOR_PROPERTY_NAMESPACE := true for prop ro.oplus.*
+    Revert CameraHWConfiguration.config changes to re-enable fd support
+    Use stock old libui.so and libutils.so to fix crash at cleanup
 ---
  BoardConfig.mk        | 2 ++
  device.mk             | 3 +++
@@ -21,10 +26,10 @@ index 09819ec..6a9743a 100644
 +
 +BUILD_BROKEN_VENDOR_PROPERTY_NAMESPACE := true
 diff --git a/device.mk b/device.mk
-index 3e82153..11aa23b 100644
+index 5ddf073..86d294f 100644
 --- a/device.mk
 +++ b/device.mk
-@@ -93,3 +93,6 @@ $(call inherit-product, device/oneplus/sm8750-common/common.mk)
+@@ -99,3 +99,6 @@ $(call inherit-product, device/oneplus/sm8750-common/common.mk)
  
  # Inherit from the proprietary files makefile.
  $(call inherit-product, vendor/oneplus/dodge/dodge-vendor.mk)
@@ -32,7 +37,7 @@ index 3e82153..11aa23b 100644
 +# Camera
 +$(call inherit-product-if-exists, vendor/oplus/camera/opluscamera.mk)
 diff --git a/extract-files.py b/extract-files.py
-index 3b00c43..17da86d 100755
+index 8ed3c8d..48fb7ac 100755
 --- a/extract-files.py
 +++ b/extract-files.py
 @@ -24,9 +24,6 @@ namespace_imports = [
@@ -44,8 +49,8 @@ index 3b00c43..17da86d 100755
 -        .regex_replace(r'(fdSupport += )TRUE;', r'\1FALSE;'),
      'odm/etc/init/init.camera_process.rc': blob_fixup()
          .regex_replace('    delete_recursion', '    #delete_recursion'),
-     (
-@@ -71,6 +68,11 @@ blob_fixups: blob_fixups_user_type = {
+     'odm/firmware/fastchg/23821/charging_hyper_mode_config.txt': blob_fixup()
+@@ -63,6 +60,11 @@ blob_fixups: blob_fixups_user_type = {
          'vendor/lib64/libcamxods.so',
      ): blob_fixup()
          .replace_needed('libtinyxml2.so', 'libtinyxml2-v34.so'),
@@ -58,10 +63,10 @@ index 3b00c43..17da86d 100755
  
  module = ExtractUtilsModule(
 diff --git a/proprietary-files.txt b/proprietary-files.txt
-index 966336f..63a3734 100644
+index 0d00149..1866364 100644
 --- a/proprietary-files.txt
 +++ b/proprietary-files.txt
-@@ -1635,4 +1635,8 @@ odm/etc/wifi/peach/bdwlang.elf
+@@ -1632,4 +1632,8 @@ odm/etc/wifi/peach/bdwlang.elf
  odm/etc/wifi/peach/regdb.bin
  odm/etc/wifi/peach/regdb_version
  

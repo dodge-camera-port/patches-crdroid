@@ -1,18 +1,20 @@
-From 3d7e90a57187f9e62ae11f1490e08244d4327fea Mon Sep 17 00:00:00 2001
+From 573303a1bf54c1b9ef9eb4f0e88227b362bd6cd4 Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Wed, 17 Jun 2026 16:20:04 +0200
-Subject: [PATCH 11/13] Add Dolby Vision configs and libs to proprietary files
+Subject: [PATCH 7/7] dodge: Add Dolby Vision support
 
 Added Dolby Vision configuration files and libraries.
+
+* Fixed Oplus Camera HDR Dolby Vision video record and playback
 ---
  proprietary-files.txt | 12 ++++++++++++
  1 file changed, 12 insertions(+)
 
 diff --git a/proprietary-files.txt b/proprietary-files.txt
-index 210d106..85ac38e 100644
+index dc1afcc..3e0e0e8 100644
 --- a/proprietary-files.txt
 +++ b/proprietary-files.txt
-@@ -1640,4 +1640,16 @@ odm/etc/wifi/peach/regdb_version
+@@ -1637,4 +1637,16 @@ odm/etc/wifi/peach/regdb_version
  vendor/lib64/libutils.so:vendor/lib64/libutils-stock.so;FIX_SONAME
  vendor/lib64/libui.so:vendor/lib64/libui-stock.so;FIX_SONAME
  

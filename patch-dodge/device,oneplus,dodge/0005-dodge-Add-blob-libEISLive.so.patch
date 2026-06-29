@@ -1,0 +1,38 @@
+From 209bce1e1e1760597138c2e417b5756f4ab97ac5 Mon Sep 17 00:00:00 2001
+From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
+Date: Tue, 9 Jun 2026 19:39:39 +0200
+Subject: [PATCH 5/7] dodge: Add blob libEISLive.so
+
+* Required by Live Photo
+---
+ extract-files.py      | 1 +
+ proprietary-files.txt | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/extract-files.py b/extract-files.py
+index bc40b36..35d7f8d 100755
+--- a/extract-files.py
++++ b/extract-files.py
+@@ -33,6 +33,7 @@ blob_fixups: blob_fixups_user_type = {
+     (
+         'odm/lib64/libAncHumanSegFigureFusion.so',
+         'odm/lib64/libEIS.so',
++        'odm/lib64/libEISLive.so',
+         'odm/lib64/libHIS.so',
+         'odm/lib64/libOPAlgoCamAiBeautyFaceRetouchCn.so',
+         'odm/lib64/libOPAlgoCamAiUnifySkin.so',
+diff --git a/proprietary-files.txt b/proprietary-files.txt
+index 1866364..dc1afcc 100644
+--- a/proprietary-files.txt
++++ b/proprietary-files.txt
+@@ -881,6 +881,7 @@ odm/lib64/libCS.so
+ odm/lib64/libCaptureBokeh.so
+ odm/lib64/libDocRectification.so
+ odm/lib64/libEIS.so
++odm/lib64/libEISLive.so
+ odm/lib64/libFDClite.so
+ odm/lib64/libFaceBeautyJni.so
+ odm/lib64/libFaceBeautyPre.so
+-- 
+2.54.0
+

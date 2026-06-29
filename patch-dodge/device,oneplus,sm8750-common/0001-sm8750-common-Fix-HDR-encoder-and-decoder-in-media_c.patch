@@ -1,7 +1,8 @@
-From e332285d14894040e153959c6e52e0c3e3913d15 Mon Sep 17 00:00:00 2001
+From 939ac22f1dfe353d5f29deb60d7b0d26434db1f2 Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Wed, 17 Jun 2026 16:19:33 +0200
-Subject: [PATCH 3/3] Fix HDR encoder and decoder in media_codecs_sun.xml
+Subject: [PATCH] sm8750-common: Fix HDR encoder and decoder in
+ media_codecs_sun.xml
 
 Added regex replacements to fix HDR encoder and decoder configurations in media_codecs_sun.xml.
 ---
@@ -9,10 +10,10 @@ Added regex replacements to fix HDR encoder and decoder configurations in media_
  1 file changed, 33 insertions(+)
 
 diff --git a/extract-files.py b/extract-files.py
-index 6559ff0..a4893a4 100755
+index 0ad14f9..ebabc6d 100755
 --- a/extract-files.py
 +++ b/extract-files.py
-@@ -141,6 +141,39 @@ blob_fixups: blob_fixups_user_type = {
+@@ -118,6 +118,39 @@ blob_fixups: blob_fixups_user_type = {
          .add_needed('libbase.so'),
      'vendor/lib64/libwfdmmsrc_proprietary.so': blob_fixup()
          .replace_needed('android.media.audio.common.types-V2-ndk.so', 'android.media.audio.common.types-V3-ndk.so'),

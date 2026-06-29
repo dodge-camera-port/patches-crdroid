@@ -1,14 +1,14 @@
-From 99795caeb003d4021d16dc9ef9a077c408367ce8 Mon Sep 17 00:00:00 2001
+From 383170580a2c1c75e6fcd7f1bf917442c86fc0a9 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Thu, 16 Apr 2026 13:44:59 +0800
-Subject: [PATCH 01/13] Include MindTheGapps
+Subject: [PATCH 1/7] dodge: Include MindTheGapps
 
 ---
  lineage_dodge.mk | 3 +++
  1 file changed, 3 insertions(+)
 
 diff --git a/lineage_dodge.mk b/lineage_dodge.mk
-index 17f87eb..76daf1e 100644
+index fcac4e5..2694986 100644
 --- a/lineage_dodge.mk
 +++ b/lineage_dodge.mk
 @@ -29,3 +29,6 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
