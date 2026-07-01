@@ -1,7 +1,7 @@
-From e4fb67b96de1117b8516c15d02bc11af30fc16c6 Mon Sep 17 00:00:00 2001
+From b440636ed22dfa6cfda7204eb6b81e2279a326af Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Wed, 17 Jun 2026 15:58:19 +0200
-Subject: [PATCH 2/5] Add Oplus user data member to StagefrightRecorder
+Subject: [PATCH 2/6] Add Oplus user data member to StagefrightRecorder
 
 Add mOplusUserData field for OPLUSHDR support.
 OnePlus/OPPO patch adding a private member to store HDR-related video recording data.

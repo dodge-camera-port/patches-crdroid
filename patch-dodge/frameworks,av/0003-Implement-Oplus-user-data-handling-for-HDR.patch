@@ -1,7 +1,7 @@
-From 435c609e9ac0b93756778a2acad8ca79ecc45503 Mon Sep 17 00:00:00 2001
+From b43da93b244f51223b25c15c36cac134975747d4 Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Wed, 17 Jun 2026 16:04:28 +0200
-Subject: [PATCH 3/5] Implement Oplus user data handling for HDR
+Subject: [PATCH 3/6] Implement Oplus user data handling for HDR
 
 Add OplusUserData parameter handling for HDR metadata passthrough to MPEG4Writer
 ---
