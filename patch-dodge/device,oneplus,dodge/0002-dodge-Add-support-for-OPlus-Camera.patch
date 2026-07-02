@@ -1,7 +1,7 @@
 From d969d311ac34666f76b531426dd3912c53b889ba Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Fri, 27 Mar 2026 17:00:51 +0800
-Subject: [PATCH 2/7] dodge: Add support for OPlus Camera
+Subject: [PATCH 2/9] dodge: Add support for OPlus Camera
 
 Squashed:
     Include vendor/oplus/camera/

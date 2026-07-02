@@ -1,7 +1,7 @@
 From fabd4f64aa31e89d4b00e203526c2daac5a2b406 Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Sun, 31 May 2026 16:37:08 +0300
-Subject: [PATCH 3/7] dodge: patch
+Subject: [PATCH 3/9] dodge: patch
  vendor.qti.hardware.camera.offlinecamera-service-impl.so
 
 ---

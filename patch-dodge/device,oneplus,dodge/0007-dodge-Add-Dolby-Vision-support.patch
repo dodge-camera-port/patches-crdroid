@@ -1,7 +1,7 @@
 From 573303a1bf54c1b9ef9eb4f0e88227b362bd6cd4 Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Wed, 17 Jun 2026 16:20:04 +0200
-Subject: [PATCH 7/7] dodge: Add Dolby Vision support
+Subject: [PATCH 7/9] dodge: Add Dolby Vision support
 
 Added Dolby Vision configuration files and libraries.
 

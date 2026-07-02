@@ -1,7 +1,7 @@
 From 209bce1e1e1760597138c2e417b5756f4ab97ac5 Mon Sep 17 00:00:00 2001
 From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
 Date: Tue, 9 Jun 2026 19:39:39 +0200
-Subject: [PATCH 5/7] dodge: Add blob libEISLive.so
+Subject: [PATCH 5/9] dodge: Add blob libEISLive.so
 
 * Required by Live Photo
 ---

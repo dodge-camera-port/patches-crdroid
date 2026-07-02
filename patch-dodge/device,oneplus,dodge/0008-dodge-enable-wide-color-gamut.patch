@@ -1,0 +1,28 @@
+From e8678aed48791af7b42c1ddf626bd38de09f9a96 Mon Sep 17 00:00:00 2001
+From: Chenyang Zhong <zhongcy95@gmail.com>
+Date: Sun, 26 Oct 2025 07:57:14 -0400
+Subject: [PATCH 8/9] dodge: enable wide color gamut
+
+Change-Id: Ife37d3b68e880f21cc7ee2013c62722e40aa1d5d
+Signed-off-by: klozz <carlosj@klozz.dev>
+---
+ overlay/OPlusFrameworksResTarget/res/values/config.xml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/overlay/OPlusFrameworksResTarget/res/values/config.xml b/overlay/OPlusFrameworksResTarget/res/values/config.xml
+index 6c2b996..18e21c9 100644
+--- a/overlay/OPlusFrameworksResTarget/res/values/config.xml
++++ b/overlay/OPlusFrameworksResTarget/res/values/config.xml
+@@ -4,6 +4,9 @@
+      SPDX-License-Identifier: Apache-2.0
+ -->
+ <resources>
++    <!-- Whether or not wcg mode should be enabled on this device -->
++    <bool name="config_enableWcgMode">true</bool>
++
+     <!-- Flag indicating whether we should enable the automatic brightness.
+          Software implementation will be used if config_hardware_auto_brightness_available is not set -->
+     <bool name="config_automatic_brightness_available">true</bool>
+-- 
+2.54.0
+

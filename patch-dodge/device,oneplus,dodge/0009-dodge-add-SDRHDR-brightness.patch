@@ -1,0 +1,35 @@
+From 9e9271995a60f35e294b6b140d473ef15fd87561 Mon Sep 17 00:00:00 2001
+From: klozz <carlosj@klozz.dev>
+Date: Mon, 23 Feb 2026 17:05:53 -0600
+Subject: [PATCH 9/9] dodge: add SDRHDR brightness
+
+Change-Id: I1d5b0057f574e0dec118df4d2775dd70e574479c
+Signed-off-by: klozz <carlosj@klozz.dev>
+---
+ configs/display/displayconfig.xml | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/configs/display/displayconfig.xml b/configs/display/displayconfig.xml
+index 45d6909..82e7d03 100644
+--- a/configs/display/displayconfig.xml
++++ b/configs/display/displayconfig.xml
+@@ -147,6 +147,16 @@
+         <timeMaxSecs>300</timeMaxSecs>         // Maximum time of HBM allowed in that window.
+         <timeMinSecs>60</timeMinSecs>          // Minimum time remaining required to switch
+         </timing>                              //   HBM on for.
++        <sdrHdrRatioMap>
++            <point>
++                <sdrNits>2.000</sdrNits>
++                <hdrRatio>8.000</hdrRatio>
++            </point>
++            <point>
++                <sdrNits>500.000</sdrNits>
++                <hdrRatio>1.5</hdrRatio>
++            </point>
++        </sdrHdrRatioMap>
+     </highBrightnessMode>
+ 
+     <screenBrightnessRampFastDecrease>0.5</screenBrightnessRampFastDecrease>
+-- 
+2.54.0
+

@@ -1,7 +1,7 @@
 From e16acd61b7e1f65208e13fcea99b118b5da13bc5 Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Mon, 29 Jun 2026 21:56:21 +0800
-Subject: [PATCH 4/7] dodge: Swap RED/BLUE in GLSL shader inside
+Subject: [PATCH 4/9] dodge: Swap RED/BLUE in GLSL shader inside
  libBasicTonePhoto.so
 
 * Work arond Master mode red blue swap issue

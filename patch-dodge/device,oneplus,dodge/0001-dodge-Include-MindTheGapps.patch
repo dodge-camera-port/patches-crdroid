@@ -1,7 +1,7 @@
 From 383170580a2c1c75e6fcd7f1bf917442c86fc0a9 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Thu, 16 Apr 2026 13:44:59 +0800
-Subject: [PATCH 1/7] dodge: Include MindTheGapps
+Subject: [PATCH 1/9] dodge: Include MindTheGapps
 
 ---
  lineage_dodge.mk | 3 +++
