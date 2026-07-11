@@ -1,23 +1,23 @@
-From a7a8384a7a4a5217256256340ca3d7f2717299a5 Mon Sep 17 00:00:00 2001
+From a56aaa1986b8cc0c3a154bc7c83d18b00ab197b9 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Tue, 30 Jun 2026 13:36:33 +0800
-Subject: [PATCH 6/6] Add optional home to app and app to home animation
+Subject: [PATCH 7/7] Add optional home to app and app to home animation
  background blur
 
 ---
- .../launcher3/QuickstepTransitionManager.java    | 16 +++++++++++-----
- .../quickstep/util/ScalingWorkspaceRevealAnim.kt |  3 ++-
- res/values-zh-rCN/custom_strings.xml             |  5 +++++
- res/values/custom_strings.xml                    |  5 +++++
- res/xml/launcher_misc_preferences.xml            |  7 +++++++
- src/com/android/launcher3/LauncherPrefs.kt       |  1 +
- src/com/android/launcher3/Utilities.java         |  4 ++++
- 7 files changed, 35 insertions(+), 6 deletions(-)
+ .../launcher3/QuickstepTransitionManager.java | 19 +++++++++++++------
+ .../util/ScalingWorkspaceRevealAnim.kt        |  3 ++-
+ res/values-zh-rCN/custom_strings.xml          |  5 +++++
+ res/values/custom_strings.xml                 |  5 +++++
+ res/xml/launcher_misc_preferences.xml         |  7 +++++++
+ src/com/android/launcher3/LauncherPrefs.kt    |  1 +
+ src/com/android/launcher3/Utilities.java      |  4 ++++
+ 7 files changed, 37 insertions(+), 7 deletions(-)
  create mode 100644 res/values-zh-rCN/custom_strings.xml
  create mode 100644 res/values/custom_strings.xml
 
 diff --git a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
-index fab03f9..4c035f0 100644
+index a8cceba..cc90ad2 100644
 --- a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
 +++ b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
 @@ -256,6 +256,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
@@ -92,8 +92,18 @@ index fab03f9..4c035f0 100644
              return null;
          }
  
+@@ -1323,7 +1329,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+     @Nullable
+     private SurfaceControl createClosingScrimLayer(SurfaceTransactionApplier applier,
+             RemoteAnimationTarget[] targets) {
+-        if (!appLaunchBlur() || !isAppLaunchBlurEnabled()) {
++        mBlurBackgroundAtAppLaunch = Utilities.blurBackgroundAtAppLaunch(mLauncher.getApplicationContext());
++        if (!mBlurBackgroundAtAppLaunch) {
+             return null;
+         }
+ 
 diff --git a/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt b/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
-index 7aec25f..580ad55 100644
+index 74b3e31..a3c1600 100644
 --- a/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
 +++ b/quickstep/src/com/android/quickstep/util/ScalingWorkspaceRevealAnim.kt
 @@ -38,6 +38,7 @@ import com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY
@@ -179,5 +189,5 @@ index 84e369e..fb73382 100644
 +    }
  }
 -- 
-2.54.0
+2.55.0
 

@@ -1,7 +1,7 @@
-From 2e999d773efdfa3832fbe7ccc7a310eada242aa5 Mon Sep 17 00:00:00 2001
+From 90fff70a915eb69350cff80afa42fa17ff793889 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Tue, 30 Jun 2026 12:12:30 +0800
-Subject: [PATCH 3/6] Revert "Launcher3: Animation optimization"
+Subject: [PATCH 3/7] Revert "Launcher3: Animation optimization"
 
 This reverts commit dd0d05d5f2b77e3181e5393d9e81f819104befd0.
 ---
@@ -9,10 +9,10 @@ This reverts commit dd0d05d5f2b77e3181e5393d9e81f819104befd0.
  1 file changed, 11 insertions(+), 15 deletions(-)
 
 diff --git a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
-index c8a40f9..8ecd520 100644
+index 9275deb..4854ada 100644
 --- a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
 +++ b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
-@@ -208,10 +208,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -209,10 +209,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
       */
      public static final int STATUS_BAR_TRANSITION_PRE_DELAY = 96;
  
@@ -26,7 +26,7 @@ index c8a40f9..8ecd520 100644
  
      public static final int ANIMATION_NAV_FADE_IN_DURATION = 266;
      public static final int ANIMATION_NAV_FADE_OUT_DURATION = 160;
-@@ -236,7 +236,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -237,7 +237,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
      // is solved.
      private static final int TASKBAR_TO_HOME_DURATION_FAST = 300;
      private static final int TASKBAR_TO_HOME_DURATION_SLOW = 1000;
@@ -35,7 +35,7 @@ index c8a40f9..8ecd520 100644
  
      private static final int MAX_NUM_TASKS = 5;
  
-@@ -327,8 +327,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -328,8 +328,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
              mSystemUiProxy.setStartingWindowListener(mStartingWindowListener);
          }
  
@@ -48,7 +48,7 @@ index c8a40f9..8ecd520 100644
          mCoordinateTransfer = new RemoteAnimationCoordinateTransfer(mLauncher);
          mLatencyTracker = LatencyTracker.getInstance(launcher);
  
-@@ -2411,7 +2413,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -2497,7 +2499,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
              final DeviceProfile profile = mLauncher.getDeviceProfile();
              final int rotation = profile.getDeviceProperties().getRotationHint();
              final int widthPx = profile.getDeviceProperties().getWidthPx();
@@ -57,7 +57,7 @@ index c8a40f9..8ecd520 100644
  
              final int rotationDelta = toLauncher
                      ? android.util.RotationUtils.deltaRotation(taskRotation, rotation)
-@@ -2447,7 +2449,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -2533,7 +2535,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
          private final Rect mWindowStartBounds = new Rect();
          private final Rect mWindowOriginalBounds = new Rect();
  
@@ -65,7 +65,7 @@ index c8a40f9..8ecd520 100644
          private final Rect mTmpRect = new Rect();
          private final SurfaceTransaction mTransaction = new SurfaceTransaction();
  
-@@ -2541,13 +2542,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -2632,13 +2633,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
  
                      builder.setMatrix(mMatrix)
                              .setWindowCrop(mTmpRect)
@@ -82,5 +82,5 @@ index c8a40f9..8ecd520 100644
                      mMatrix.setTranslate(mTmpPos.x, mTmpPos.y);
                      builder.setMatrix(mMatrix)
 -- 
-2.54.0
+2.55.0
 

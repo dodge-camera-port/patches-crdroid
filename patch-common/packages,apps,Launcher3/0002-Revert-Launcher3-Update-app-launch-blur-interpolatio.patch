@@ -1,7 +1,7 @@
-From 56a46283726ceff589ec2dad9844b1c7fc13b71f Mon Sep 17 00:00:00 2001
+From bb39a9eb12428f719bf39d819f2b17990aeefc05 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Tue, 30 Jun 2026 12:11:18 +0800
-Subject: [PATCH 2/6] Revert "Launcher3: Update app launch blur interpolation"
+Subject: [PATCH 2/7] Revert "Launcher3: Update app launch blur interpolation"
 
 This reverts commit 04ec955dfa474d7aad103adce513c7d059a12cdd.
 ---
@@ -9,10 +9,10 @@ This reverts commit 04ec955dfa474d7aad103adce513c7d059a12cdd.
  1 file changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
-index 3b79c8e..c8a40f9 100644
+index 0d620a2..9275deb 100644
 --- a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
 +++ b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
-@@ -939,9 +939,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -940,9 +940,6 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                      NAV_FADE_IN_INTERPOLATOR, ANIMATION_DELAY_NAV_FADE_IN,
                      ANIMATION_NAV_FADE_IN_DURATION, APP_LAUNCH_DURATION));
  
@@ -22,9 +22,9 @@ index 3b79c8e..c8a40f9 100644
              @Override
              public void onUpdate(float percent, boolean initOnly) {
                  if (cropToInset && bottomInsetPos[0] != cachedNavbarInset[0]) {
-@@ -1092,8 +1089,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+@@ -1093,8 +1090,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
  
-                 if (appLaunchBlur() && scrimLayer != null && scrimLayer.isValid()) {
+                 if (appLaunchBlur() && isAppLaunchBlurEnabled() && scrimLayer != null && scrimLayer.isValid()) {
                      SurfaceProperties builder = transaction.forSurface(scrimLayer);
 -                    builder.setAlpha(mBlurScrimAlpha.value);
 -                    builder.setBackgroundBlurRadius((int) mBlurRadius.value);
@@ -34,5 +34,5 @@ index 3b79c8e..c8a40f9 100644
  
                  surfaceApplier.scheduleApply(transaction);
 -- 
-2.54.0
+2.55.0
 
