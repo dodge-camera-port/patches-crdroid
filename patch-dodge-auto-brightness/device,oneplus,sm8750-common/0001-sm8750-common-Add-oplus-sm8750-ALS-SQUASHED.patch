@@ -1,0 +1,1247 @@
+From b3584a7b7f37ed781213cc74058fc805129780a1 Mon Sep 17 00:00:00 2001
+From: Chenyang Zhong <zhongcy95@gmail.com>
+Date: Sun, 15 Feb 2026 00:02:09 -0600
+Subject: [PATCH] sm8750-common: Add oplus-sm8750 ALS [SQUASHED]
+
+sm8750-common: sensors: fix the return type of IsWrappedHandle
+
+The function clearly meant to return a bool.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+Revert "sm8750-common: Set `debug.sf.auto_latch_unsignaled` to 0"
+
+This reverts commit b8ac7569a08f95d4cbd8e4d9e5df9392805971bb.
+
+Change-Id: Ia924e139a153d05259ed9c143c66a58dd1c19983
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: import als from sm8150-common
+
+Source repo: https://github.com/LineageOS/android_device_oneplus_sm8150-common
+HEAD: 1e78412d50011998a8881cdd52672eb6eeec4f61
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: import AlsCorrection from sm8150-common
+
+Source repo: https://github.com/LineageOS/android_device_oneplus_sm8150-common
+HEAD: 1e78412d50011998a8881cdd52672eb6eeec4f61
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: integrate AlsCorrection to SensorsSubHal
+
+1. The namespace has been adjusted to match our SensorsSubHal.
+2. Not all devices on sm8750 use a wrapped wise_rgb sensor. For exmaple,
+   dodge has a normal android.sensor.light sensor which reports a single
+   scalar value as the measured lux. Therefore, AlsCorrection should be
+   able to correctly pick either the data[2] of wise_rgb or the scalar
+   of android.sensor.light. A new parameter "is_wise_rgb" is added to
+   the process() function to make the selection.
+3. The postEvents() in SensorsSubHal has been reworked to always make a
+   copy of the incoming event vector. The interface passes a const
+   reference of the vector, so the SensorsSubHal cannot directly modify
+   one of the event. When compensating the scalar value of
+   android.sensor.light, technically it is possible to only make a copy
+   of the event itself, compensate the value, and then append it to the
+   callback vector. The problem is that the old uncompensated event also
+   needs to be removed from the vector, which is non-trivial. In the
+   end, it is simpler to copy the whole vector for processing.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sepolicy: import ALS sepolicy from sm8150-common
+
+Source repo: https://github.com/LineageOS/android_device_oneplus_sm8150-common
+HEAD: 1e78412d50011998a8881cdd52672eb6eeec4f61
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sepolicy: ignore ALS related public types
+
+I do not like the way ignore.cil works, but let's hack it for now
+to get ALS going.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: build oplus_als service
+
+Change-Id: I013df1db22d9d7b1c8b12430a920e35f43c0326a
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: read rgbw_max_lux from prop
+
+Some devices do not have the max lux values in /proc/sensor/als_cali/,
+so the values from prop should be used as a fallback.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: add more logs in AlsCorrection
+
+ALOGV logs are compiled out normally, so no additional overhead for
+released builds.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: remove the magic -14 lux in correction
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+[REVERTME] sm8750-common: sensors: enable logs in AlsCorrection
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: drop rgbw_poly and cumulative_correction
+
+I do not know how to get those values, and I feel like they are not
+necessary on sm8750.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: remove agc_gain
+
+I am not sure if it is necessary on sm8750.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: use the estimated screen brightness for max hyst
+
+The grayscale gamma is a more accurate estimation of the screen's impact
+on the light sensor value. Using this as the max range hysteresis means
+that a new light sensor correction is calculated when either of the
+following is true.
+
+1. The screen content remained constant, but the ambient light lux
+   exceeds the range max.
+2. The ambient light lux remained constant, but the screen content got
+   brighter and the raw light sensor value exceeds the range max.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: remove rgbw_max_lux_div and rgbw_lux_postmul
+
+Now that rgbw_poly has been remove, AlsCorrection no longer uses a
+third order polynomial to calculate cumulative correction. As a result,
+the postmul value is not used either.
+
+In addition, I expect sm8750 devices to almost always get the
+rgbw_max_lux from props instead of from als_cali, so AlsCorrection
+should not need to further scale the max lux by postmul.
+
+Therefore, drop rgbw_max_lux_div and the rgbw_lux_postmul that is
+calculated from the division.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: polynomial curves mapping brightness to lux
+
+Many devices do not have a linear mapping between the panel brightness
+and the illuminance lux measured by the ambient light sensor. There is
+often an abrupt change in the curve after a certain brightness,
+sometimes caused by HBM kicking in. In this case, the old logic of
+linearly scaling the rgbw_max_lux by brightness no longer works.
+
+This commit introduces another method of configuring the brightness to
+lux mapping. When the brightness_breakpoint prop is non-zero,
+AlsCorrection will use a polynomial equation to calculate the expected
+illuminance lux for a fullwhite content. Then lux can then be scaled by
+grayscale weights using values from RGB channels. The polynomials can be
+second order (i.e. quadratic) or first order (linear), which should be
+enough for most devices.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: sensors: drop the magic hysteresis of sensor update
+
+AlsCorrection already uses an array of ranges to avoid frequent
+screenshots. I'm not sure if we need another pair of magic numbers to
+check the raw calibrated sensor readings. In addition, the framework
+side also has 3 threshold arrays in config.xml to prevent fluctuations
+in sensor readings from adjusting the screen brightness too frequently.
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+sm8750-common: als: unlock the captureResults buffer ASAP
+
+Unlock the buffer immediately after everything we need has been read
+from "out".
+
+Signed-off-by: Chenyang Zhong <zhongcy95@gmail.com>
+
+Revert "[REVERTME] sm8750-common: sensors: enable logs in AlsCorrection"
+
+This reverts commit 6e8f19f0491d4407c185155d9f12ab589a37c0d0.
+
+Change-Id: I4877987d2971da33090510d28d4144772f5e3ba8
+---
+ BoardConfigCommon.mk                          |   4 +-
+ als/Android.bp                                |  27 ++
+ als/aidl_api/vendor.lineage.oplus_als/1/.hash |   1 +
+ .../oplus_als/AreaRgbCaptureResult.aidl       |  14 +
+ .../lineage/oplus_als/IAreaCapture.aidl       |  14 +
+ .../oplus_als/AreaRgbCaptureResult.aidl       |  14 +
+ .../lineage/oplus_als/IAreaCapture.aidl       |  14 +
+ als/default/.clang-format                     |   1 +
+ als/default/Android.bp                        |  27 ++
+ als/default/AreaCapture.cpp                   | 108 +++++++
+ als/default/AreaCapture.h                     |  31 ++
+ als/default/main.cpp                          |  26 ++
+ .../vendor.lineage.oplus_als.service.rc       |   6 +
+ .../vendor.lineage.oplus_als.service.xml      |  10 +
+ .../oplus_als/AreaRgbCaptureResult.aidl       |  14 +
+ .../lineage/oplus_als/IAreaCapture.aidl       |  14 +
+ common.mk                                     |   3 +-
+ sensors/AlsCorrection.cpp                     | 275 ++++++++++++++++++
+ sensors/AlsCorrection.h                       |  32 ++
+ sensors/Android.bp                            |   5 +
+ sensors/SensorsSubHal.cpp                     |  46 +--
+ .../private/compat/202404/202404.ignore.cil   |   9 +
+ sepolicy/private/file_contexts                |   2 +
+ .../private/hal_lineage_oplus_als_aidl.te     |  28 ++
+ sepolicy/private/property_contexts            |   2 +
+ sepolicy/private/service_contexts             |   2 +
+ sepolicy/public/attributes                    |   1 +
+ sepolicy/public/property.te                   |   1 +
+ sepolicy/public/service.te                    |   1 +
+ sepolicy/vendor/hal_sensors_default.te        |   4 +
+ sepolicy/vendor/vendor_init.te                |   1 +
+ vendor.prop                                   |   3 +-
+ 32 files changed, 720 insertions(+), 20 deletions(-)
+ create mode 100644 als/Android.bp
+ create mode 100644 als/aidl_api/vendor.lineage.oplus_als/1/.hash
+ create mode 100644 als/aidl_api/vendor.lineage.oplus_als/1/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+ create mode 100644 als/aidl_api/vendor.lineage.oplus_als/1/vendor/lineage/oplus_als/IAreaCapture.aidl
+ create mode 100644 als/aidl_api/vendor.lineage.oplus_als/current/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+ create mode 100644 als/aidl_api/vendor.lineage.oplus_als/current/vendor/lineage/oplus_als/IAreaCapture.aidl
+ create mode 120000 als/default/.clang-format
+ create mode 100644 als/default/Android.bp
+ create mode 100644 als/default/AreaCapture.cpp
+ create mode 100644 als/default/AreaCapture.h
+ create mode 100644 als/default/main.cpp
+ create mode 100644 als/default/vendor.lineage.oplus_als.service.rc
+ create mode 100644 als/default/vendor.lineage.oplus_als.service.xml
+ create mode 100644 als/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+ create mode 100644 als/vendor/lineage/oplus_als/IAreaCapture.aidl
+ create mode 100644 sensors/AlsCorrection.cpp
+ create mode 100644 sensors/AlsCorrection.h
+ create mode 100644 sepolicy/private/compat/202404/202404.ignore.cil
+ create mode 100644 sepolicy/private/file_contexts
+ create mode 100644 sepolicy/private/hal_lineage_oplus_als_aidl.te
+ create mode 100644 sepolicy/private/property_contexts
+ create mode 100644 sepolicy/private/service_contexts
+ create mode 100644 sepolicy/public/attributes
+ create mode 100644 sepolicy/public/property.te
+ create mode 100644 sepolicy/public/service.te
+ create mode 100644 sepolicy/vendor/hal_sensors_default.te
+ create mode 100644 sepolicy/vendor/vendor_init.te
+
+diff --git a/BoardConfigCommon.mk b/BoardConfigCommon.mk
+index cf0f47b..eb09762 100644
+--- a/BoardConfigCommon.mk
++++ b/BoardConfigCommon.mk
+@@ -230,7 +230,9 @@ VENDOR_SECURITY_PATCH := $(BOOT_SECURITY_PATCH)
+ # SEPolicy
+ include device/qcom/sepolicy_vndr/SEPolicy.mk
+ include hardware/oplus/sepolicy/qti/SEPolicy.mk
+-BOARD_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy/vendor
++BOARD_VENDOR_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy/vendor
++SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy/private
++SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += $(COMMON_PATH)/sepolicy/public
+ 
+ # Verified Boot
+ BOARD_AVB_ENABLE := true
+diff --git a/als/Android.bp b/als/Android.bp
+new file mode 100644
+index 0000000..524ac4d
+--- /dev/null
++++ b/als/Android.bp
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++aidl_interface {
++    name: "vendor.lineage.oplus_als",
++    vendor_available: true,
++    srcs: ["vendor/lineage/oplus_als/*.aidl"],
++    stability: "vintf",
++    owner: "lineage",
++    backend: {
++        cpp: {
++            enabled: false,
++        },
++        java: {
++            enabled: false,
++        },
++    },
++    versions_with_info: [
++        {
++            version: "1",
++            imports: [],
++        },
++    ],
++}
+diff --git a/als/aidl_api/vendor.lineage.oplus_als/1/.hash b/als/aidl_api/vendor.lineage.oplus_als/1/.hash
+new file mode 100644
+index 0000000..b477c61
+--- /dev/null
++++ b/als/aidl_api/vendor.lineage.oplus_als/1/.hash
+@@ -0,0 +1 @@
++adce6a8cc870bbfa03fa544897422ba03b47cbb0
+\ No newline at end of file
+diff --git a/als/aidl_api/vendor.lineage.oplus_als/1/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl b/als/aidl_api/vendor.lineage.oplus_als/1/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+new file mode 100644
+index 0000000..110fbb3
+--- /dev/null
++++ b/als/aidl_api/vendor.lineage.oplus_als/1/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package vendor.lineage.oplus_als;
++
++@VintfStability
++parcelable AreaRgbCaptureResult {
++  float r;
++  float g;
++  float b;
++}
+diff --git a/als/aidl_api/vendor.lineage.oplus_als/1/vendor/lineage/oplus_als/IAreaCapture.aidl b/als/aidl_api/vendor.lineage.oplus_als/1/vendor/lineage/oplus_als/IAreaCapture.aidl
+new file mode 100644
+index 0000000..48dd886
+--- /dev/null
++++ b/als/aidl_api/vendor.lineage.oplus_als/1/vendor/lineage/oplus_als/IAreaCapture.aidl
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package vendor.lineage.oplus_als;
++
++import vendor.lineage.oplus_als.AreaRgbCaptureResult;
++
++@VintfStability
++interface IAreaCapture {
++    AreaRgbCaptureResult getAreaBrightness();
++}
+diff --git a/als/aidl_api/vendor.lineage.oplus_als/current/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl b/als/aidl_api/vendor.lineage.oplus_als/current/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+new file mode 100644
+index 0000000..110fbb3
+--- /dev/null
++++ b/als/aidl_api/vendor.lineage.oplus_als/current/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package vendor.lineage.oplus_als;
++
++@VintfStability
++parcelable AreaRgbCaptureResult {
++  float r;
++  float g;
++  float b;
++}
+diff --git a/als/aidl_api/vendor.lineage.oplus_als/current/vendor/lineage/oplus_als/IAreaCapture.aidl b/als/aidl_api/vendor.lineage.oplus_als/current/vendor/lineage/oplus_als/IAreaCapture.aidl
+new file mode 100644
+index 0000000..48dd886
+--- /dev/null
++++ b/als/aidl_api/vendor.lineage.oplus_als/current/vendor/lineage/oplus_als/IAreaCapture.aidl
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package vendor.lineage.oplus_als;
++
++import vendor.lineage.oplus_als.AreaRgbCaptureResult;
++
++@VintfStability
++interface IAreaCapture {
++    AreaRgbCaptureResult getAreaBrightness();
++}
+diff --git a/als/default/.clang-format b/als/default/.clang-format
+new file mode 120000
+index 0000000..f1b4f69
+--- /dev/null
++++ b/als/default/.clang-format
+@@ -0,0 +1 @@
++../../../../../build/soong/scripts/system-clang-format
+\ No newline at end of file
+diff --git a/als/default/Android.bp b/als/default/Android.bp
+new file mode 100644
+index 0000000..c019c28
+--- /dev/null
++++ b/als/default/Android.bp
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++cc_binary {
++    name: "vendor.lineage.oplus_als.service",
++    init_rc: ["vendor.lineage.oplus_als.service.rc"],
++    vintf_fragments: ["vendor.lineage.oplus_als.service.xml"],
++    relative_install_path: "hw",
++    system_ext_specific: true,
++    srcs: [
++        "AreaCapture.cpp",
++        "main.cpp",
++    ],
++    shared_libs: [
++        "libbase",
++        "libbinder",
++        "libbinder_ndk",
++        "libgui",
++        "libui",
++        "libutils",
++        "liblog",
++        "vendor.lineage.oplus_als-V1-ndk",
++    ],
++}
+diff --git a/als/default/AreaCapture.cpp b/als/default/AreaCapture.cpp
+new file mode 100644
+index 0000000..98c3daf
+--- /dev/null
++++ b/als/default/AreaCapture.cpp
+@@ -0,0 +1,108 @@
++/*
++ * Copyright (C) 2021-2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include "AreaCapture.h"
++
++#include <android-base/properties.h>
++#include <gui/AidlUtil.h>
++#include <gui/SurfaceComposerClient.h>
++#include <gui/SyncScreenCaptureListener.h>
++#include <ui/DisplayState.h>
++#include <ui/PixelFormat.h>
++
++using android::DisplayCaptureArgs;
++using android::GraphicBuffer;
++using android::IBinder;
++using android::Rect;
++using android::ScreenshotClient;
++using android::sp;
++using android::SurfaceComposerClient;
++using android::SyncScreenCaptureListener;
++using android::base::GetProperty;
++using android::gui::ScreenCaptureResults;
++using android::gui::SecureLayerMode;
++using android::gui::aidl_utils::toARect;
++using android::ui::PixelFormat;
++
++namespace aidl {
++namespace vendor {
++namespace lineage {
++namespace oplus_als {
++
++AreaCapture::AreaCapture() {
++    int left, top, right, bottom;
++    std::istringstream is(GetProperty("vendor.sensors.als_correction.grabrect", ""));
++
++    is >> left >> top >> right >> bottom;
++    if (left == 0) {
++        LOG_ALWAYS_FATAL("No screenshot grab area config");
++        return;
++    }
++
++    ALOGI("Screenshot grab area: %d %d %d %d", left, top, right, bottom);
++    m_screenshot_rect = Rect(left, top, right, bottom);
++}
++
++// See frameworks/base/services/core/jni/com_android_server_display_DisplayControl.cpp and
++// frameworks/base/core/java/android/view/SurfaceControl.java
++sp<IBinder> AreaCapture::getInternalDisplayToken() {
++    const auto displayIds = SurfaceComposerClient::getPhysicalDisplayIds();
++    return SurfaceComposerClient::getPhysicalDisplayToken(displayIds[0]);
++}
++
++ndk::ScopedAStatus AreaCapture::getAreaBrightness(AreaRgbCaptureResult* _aidl_return) {
++    DisplayCaptureArgs displayCaptureArgs;
++    displayCaptureArgs.displayToken = getInternalDisplayToken();
++    displayCaptureArgs.captureArgs.pixelFormat = ::android::PIXEL_FORMAT_RGBA_8888;
++    displayCaptureArgs.captureArgs.sourceCrop = toARect(m_screenshot_rect);
++    displayCaptureArgs.width = m_screenshot_rect.getWidth();
++    displayCaptureArgs.height = m_screenshot_rect.getHeight();
++    displayCaptureArgs.captureArgs.secureLayerMode = SecureLayerMode::Capture;
++
++    sp<SyncScreenCaptureListener> captureListener = new SyncScreenCaptureListener();
++    if (ScreenshotClient::captureDisplay(displayCaptureArgs, captureListener) !=
++        ::android::NO_ERROR) {
++        ALOGE("Capture failed");
++        return ndk::ScopedAStatus::fromServiceSpecificError(-1);
++    }
++
++    auto captureResults = captureListener->waitForResults();
++    if (!captureResults.fenceResult.ok()) {
++        ALOGE("Fence result error");
++        return ndk::ScopedAStatus::fromServiceSpecificError(-1);
++    }
++
++    uint8_t* out;
++    captureResults.buffer->lock(GraphicBuffer::USAGE_SW_READ_OFTEN, reinterpret_cast<void**>(&out));
++
++    const auto resultWidth = captureResults.buffer->getWidth();
++    const auto resultHeight = captureResults.buffer->getHeight();
++    const auto stride = captureResults.buffer->getStride();
++
++    // we can sum this directly on linear light
++    uint32_t rsum = 0, gsum = 0, bsum = 0;
++    for (int y = 0; y < resultHeight; y++) {
++        for (int x = 0; x < resultWidth; x++) {
++            rsum += out[y * (stride * 4) + x * 4];
++            gsum += out[y * (stride * 4) + x * 4 + 1];
++            bsum += out[y * (stride * 4) + x * 4 + 2];
++        }
++    }
++
++    captureResults.buffer->unlock();
++
++    const float max = resultWidth * resultHeight;
++    _aidl_return->r = rsum / max;
++    _aidl_return->g = gsum / max;
++    _aidl_return->b = bsum / max;
++
++    return ndk::ScopedAStatus::ok();
++}
++
++}  // namespace oplus_als
++}  // namespace lineage
++}  // namespace vendor
++}  // namespace aidl
+diff --git a/als/default/AreaCapture.h b/als/default/AreaCapture.h
+new file mode 100644
+index 0000000..21481f5
+--- /dev/null
++++ b/als/default/AreaCapture.h
+@@ -0,0 +1,31 @@
++/*
++ * Copyright (C) 2021-2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#pragma once
++
++#include <aidl/vendor/lineage/oplus_als/BnAreaCapture.h>
++#include <ui/Rect.h>
++
++namespace aidl {
++namespace vendor {
++namespace lineage {
++namespace oplus_als {
++
++class AreaCapture : public BnAreaCapture {
++  public:
++    AreaCapture();
++    ndk::ScopedAStatus getAreaBrightness(AreaRgbCaptureResult* _aidl_return) override;
++
++  private:
++    static ::android::sp<::android::IBinder> getInternalDisplayToken();
++
++    ::android::Rect m_screenshot_rect;
++};
++
++}  // namespace oplus_als
++}  // namespace lineage
++}  // namespace vendor
++}  // namespace aidl
+diff --git a/als/default/main.cpp b/als/default/main.cpp
+new file mode 100644
+index 0000000..0e5537e
+--- /dev/null
++++ b/als/default/main.cpp
+@@ -0,0 +1,26 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include "AreaCapture.h"
++
++#include <android-base/logging.h>
++#include <android/binder_manager.h>
++#include <android/binder_process.h>
++
++using ::aidl::vendor::lineage::oplus_als::AreaCapture;
++
++int main() {
++    ABinderProcess_setThreadPoolMaxThreadCount(0);
++    ABinderProcess_startThreadPool();
++    std::shared_ptr<AreaCapture> ac = ndk::SharedRefBase::make<AreaCapture>();
++
++    const auto instance = std::string(AreaCapture::descriptor) + "/default";
++    binder_status_t status = AServiceManager_addService(ac->asBinder().get(), instance.c_str());
++    CHECK_EQ(status, STATUS_OK);
++
++    ABinderProcess_joinThreadPool();
++    return EXIT_FAILURE;  // should not reach
++}
+diff --git a/als/default/vendor.lineage.oplus_als.service.rc b/als/default/vendor.lineage.oplus_als.service.rc
+new file mode 100644
+index 0000000..79c2b72
+--- /dev/null
++++ b/als/default/vendor.lineage.oplus_als.service.rc
+@@ -0,0 +1,6 @@
++service vendor.lineage.oplus_als.service /system_ext/bin/hw/vendor.lineage.oplus_als.service
++    class hal
++    user system
++    group system
++    task_profiles ServiceCapacityLow
++    interface aidl vendor.lineage.oplus_als.IAreaCapture/default
+diff --git a/als/default/vendor.lineage.oplus_als.service.xml b/als/default/vendor.lineage.oplus_als.service.xml
+new file mode 100644
+index 0000000..1ea104d
+--- /dev/null
++++ b/als/default/vendor.lineage.oplus_als.service.xml
+@@ -0,0 +1,10 @@
++<!--
++     Copyright (C) 2024 The LineageOS Project
++     SPDX-License-Identifier: Apache-2.0
++-->
++<manifest version="1.0" type="framework">
++    <hal format="aidl">
++        <name>vendor.lineage.oplus_als</name>
++        <fqname>IAreaCapture/default</fqname>
++    </hal>
++</manifest>
+diff --git a/als/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl b/als/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+new file mode 100644
+index 0000000..110fbb3
+--- /dev/null
++++ b/als/vendor/lineage/oplus_als/AreaRgbCaptureResult.aidl
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package vendor.lineage.oplus_als;
++
++@VintfStability
++parcelable AreaRgbCaptureResult {
++  float r;
++  float g;
++  float b;
++}
+diff --git a/als/vendor/lineage/oplus_als/IAreaCapture.aidl b/als/vendor/lineage/oplus_als/IAreaCapture.aidl
+new file mode 100644
+index 0000000..48dd886
+--- /dev/null
++++ b/als/vendor/lineage/oplus_als/IAreaCapture.aidl
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) 2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package vendor.lineage.oplus_als;
++
++import vendor.lineage.oplus_als.AreaRgbCaptureResult;
++
++@VintfStability
++interface IAreaCapture {
++    AreaRgbCaptureResult getAreaBrightness();
++}
+diff --git a/common.mk b/common.mk
+index 3bc2e65..b67db63 100644
+--- a/common.mk
++++ b/common.mk
+@@ -380,7 +380,8 @@ endif
+ PRODUCT_PACKAGES += \
+     android.hardware.sensors-service.multihal \
+     sensors.dynamic_sensor_hal \
+-    sensors.qsh_wrapper
++    sensors.qsh_wrapper \
++    vendor.lineage.oplus_als.service
+ 
+ PRODUCT_COPY_FILES += \
+     $(LOCAL_PATH)/configs/sensors/hals.conf:$(TARGET_COPY_OUT_VENDOR)/etc/sensors/hals.conf
+diff --git a/sensors/AlsCorrection.cpp b/sensors/AlsCorrection.cpp
+new file mode 100644
+index 0000000..d06d071
+--- /dev/null
++++ b/sensors/AlsCorrection.cpp
+@@ -0,0 +1,275 @@
++/*
++ * Copyright (C) 2021-2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include "AlsCorrection.h"
++
++#include <android-base/properties.h>
++#include <android/binder_manager.h>
++#include <binder/IBinder.h>
++#include <binder/IServiceManager.h>
++#include <log/log.h>
++#include <utils/Timers.h>
++#include <cmath>
++#include <fstream>
++
++using aidl::vendor::lineage::oplus_als::AreaRgbCaptureResult;
++using aidl::vendor::lineage::oplus_als::IAreaCapture;
++using android::base::GetBoolProperty;
++using android::base::GetIntProperty;
++using android::base::GetProperty;
++
++#define ALS_CALI_DIR "/proc/sensor/als_cali/"
++#define BRIGHTNESS_DIR "/sys/class/backlight/panel0-backlight/"
++
++namespace android {
++namespace hardware {
++namespace sensors {
++namespace V2_1 {
++namespace subhal {
++namespace implementation {
++namespace qsh_wrapper {
++
++static const std::string rgbw_max_lux_paths[4] = {
++        ALS_CALI_DIR "red_max_lux",
++        ALS_CALI_DIR "green_max_lux",
++        ALS_CALI_DIR "blue_max_lux",
++        ALS_CALI_DIR "white_max_lux",
++};
++
++struct als_config {
++    float rgbw_max_lux[4];
++    float grayscale_weights[3];
++    float sensor_inverse_gain[4];
++    float calib_gain;
++    float bias;
++    float max_brightness;
++    float brightness_breakpoint;
++    float brightness_poly0[3];
++    float brightness_poly1[3];
++    bool use_brightness_curve;
++};
++
++static struct {
++    float middle;
++    float min, max;
++} hysteresis_ranges[] = {
++        {0, 0, 4},
++        {7, 1, 12},
++        {15, 5, 30},
++        {30, 10, 50},
++        {360, 25, 700},
++        {1200, 300, 1600},
++        {2250, 1000, 2940},
++        {4600, 2000, 5900},
++        {10000, 4000, 80000},
++        {HUGE_VALF, 8000, HUGE_VALF},
++};
++
++static struct {
++    nsecs_t last_update, last_forced_update;
++    bool force_update;
++    float hyst_min, hyst_max;
++    float last_corrected_value;
++} state = {
++        .last_update = 0,
++        .force_update = true,
++        .hyst_min = -1.0,
++        .hyst_max = -1.0,
++};
++
++static als_config conf;
++static std::shared_ptr<IAreaCapture> service;
++
++template <typename T>
++static T get(const std::string& path, const T& def) {
++    std::ifstream file(path);
++    T result;
++
++    file >> result;
++    return file.fail() ? def : result;
++}
++
++void AlsCorrection::init() {
++    std::istringstream is;
++
++    conf.bias = GetIntProperty("vendor.sensors.als_correction.bias", 0);
++    is = std::istringstream(GetProperty("vendor.sensors.als_correction.grayscale_weights", ""));
++    is >> conf.grayscale_weights[0] >> conf.grayscale_weights[1] >> conf.grayscale_weights[2];
++    is = std::istringstream(GetProperty("vendor.sensors.als_correction.sensor_inverse_gain", ""));
++    is >> conf.sensor_inverse_gain[0] >> conf.sensor_inverse_gain[1] >>
++            conf.sensor_inverse_gain[2] >> conf.sensor_inverse_gain[3];
++
++    // There are two options of mapping a display brightness value to a screen illuminance (lux) for
++    // fullwhite content.
++    // 1. If the display illuminance measured by ALS is directly proportional to the panel
++    // brightness value, only rgbw_max_lux needs to be set in props. The ratio of the current
++    // brightness over max brightness will be used to scale the rgbw_max_lux as well.
++    is = std::istringstream(GetProperty("vendor.sensors.als_correction.rgbw_max_lux", ""));
++    is >> conf.rgbw_max_lux[0] >> conf.rgbw_max_lux[1] >> conf.rgbw_max_lux[2] >>
++            conf.rgbw_max_lux[3];
++    // 2. If the display illuminance does not increase linearly over the panel brightness, and after
++    // a certain brightness, the curve changes abruptly (often caused by the HBM threshold), set
++    // the breakpoint value and the two sets of polynomial coefficients that describe the curve
++    // before and after the breakpoint. poly0 is used if the current brightness is lower than the
++    // breakpoint. Otherwise, poly1 is used. poly1 can be made optional when the breakpoint is
++    // higher than the max panel brightness. This is useful when the brightness to lux curve is
++    // non-linear, but there is no obvious breakpoint and one curve is enough. The current
++    // implementation supports two second-order polynomials. Set the first coefficient to 0.0 if a
++    // linear mapping is enough.
++    is = std::istringstream(GetProperty("vendor.sensors.als_correction.brightness_breakpoint", ""));
++    is >> conf.brightness_breakpoint;
++    is = std::istringstream(GetProperty("vendor.sensors.als_correction.brightness_poly0", ""));
++    is >> conf.brightness_poly0[0] >> conf.brightness_poly0[1] >> conf.brightness_poly0[2];
++    is = std::istringstream(GetProperty("vendor.sensors.als_correction.brightness_poly1", ""));
++    is >> conf.brightness_poly1[0] >> conf.brightness_poly1[1] >> conf.brightness_poly1[2];
++
++    conf.use_brightness_curve = conf.brightness_breakpoint != 0.0;
++
++    if (!conf.use_brightness_curve) {
++        for (int i = 0; i < 4; i++) {
++            float max_lux = get(rgbw_max_lux_paths[i], 0.0);
++            if (max_lux != 0.0) {
++                conf.rgbw_max_lux[i] = max_lux;
++            }
++        }
++        ALOGI("Display maximums: R=%.0f G=%.0f B=%.0f W=%.0f", conf.rgbw_max_lux[0],
++              conf.rgbw_max_lux[1], conf.rgbw_max_lux[2], conf.rgbw_max_lux[3]);
++    }
++
++    float row_coe = get(ALS_CALI_DIR "row_coe", 0.0);
++    if (row_coe != 0.0) {
++        conf.sensor_inverse_gain[0] = row_coe / 1000.0;
++    }
++
++    float cali_coe = get(ALS_CALI_DIR "cali_coe", 0.0);
++    conf.calib_gain = cali_coe > 0.0 ? cali_coe / 1000.0 : 1.0;
++    ALOGI("Calibrated sensor gain: %.2fx", 1.0 / (conf.calib_gain * conf.sensor_inverse_gain[0]));
++
++    conf.max_brightness = get(BRIGHTNESS_DIR "max_brightness", 1023.0);
++
++    for (auto& range : hysteresis_ranges) {
++        range.min /= conf.calib_gain * conf.sensor_inverse_gain[0];
++        range.max /= conf.calib_gain * conf.sensor_inverse_gain[0];
++    }
++    hysteresis_ranges[0].min = -1.0;
++
++    const auto instancename = std::string(IAreaCapture::descriptor) + "/default";
++
++    if (AServiceManager_isDeclared(instancename.c_str())) {
++        service = IAreaCapture::fromBinder(
++                ::ndk::SpAIBinder(AServiceManager_waitForService(instancename.c_str())));
++    } else {
++        ALOGE("Service is not registered");
++    }
++}
++
++void AlsCorrection::process(Event& event) {
++    static AreaRgbCaptureResult screenshot = {0.0, 0.0, 0.0};
++
++    ALOGV("Raw sensor reading: %.0f", event.u.scalar);
++    ALOGV("hyst min: %f, max: %f", state.hyst_min, state.hyst_max);
++
++    if (event.u.scalar > conf.bias) {
++        event.u.scalar -= conf.bias;
++    }
++
++    const nsecs_t now = systemTime(SYSTEM_TIME_BOOTTIME);
++    const float brightness = get(BRIGHTNESS_DIR "brightness", 0.0);
++
++    if (state.last_update == 0) {
++        state.last_update = now;
++        state.last_forced_update = now;
++    } else {
++        if (brightness > 0.0 && (now - state.last_forced_update) > s2ns(3)) {
++            ALOGV("Forcing screenshot");
++            state.last_forced_update = now;
++            state.force_update = true;
++        }
++        if ((now - state.last_update) < ms2ns(100)) {
++            ALOGV("Events coming too fast, dropping");
++            // TODO figure out a better way to drop events
++            event.sensorHandle = 0;
++            return;
++        }
++        state.last_update = now;
++    }
++
++    if (state.force_update ||
++        ((event.u.scalar < state.hyst_min || event.u.scalar > state.hyst_max))) {
++        if (service == nullptr || !service->getAreaBrightness(&screenshot).isOk()) {
++            ALOGE("Could not get area above sensor");
++            // TODO figure out a better way to drop events
++            event.sensorHandle = 0;
++            return;
++        }
++        ALOGV("Screen color above sensor: %f %f %f", screenshot.r, screenshot.g, screenshot.b);
++
++        const float screen_lux = [&]() {
++            const float grayscale = screenshot.r * conf.grayscale_weights[0] +
++                                    screenshot.g * conf.grayscale_weights[1] +
++                                    screenshot.b * conf.grayscale_weights[2];
++            const float grayscale_normalized = grayscale / 255.0;
++
++            if (conf.use_brightness_curve) {
++                const auto& poly = (brightness < conf.brightness_breakpoint)
++                                           ? conf.brightness_poly0
++                                           : conf.brightness_poly1;
++
++                float lux_fullwhite = 0.0;
++                for (const auto coef : poly) {
++                    lux_fullwhite = lux_fullwhite * brightness + coef;
++                }
++                const float lux = grayscale_normalized * lux_fullwhite;
++
++                return lux;
++            } else {
++                const float lux_fullwhite = conf.rgbw_max_lux[3] * brightness / conf.max_brightness;
++                const float lux_grayscale_gamma =
++                        std::pow(grayscale_normalized, 2.2) * lux_fullwhite;
++
++                return lux_grayscale_gamma;
++            }
++        }();
++        ALOGV("Screen brightness: %.0f / %.0f, Estimated illuminance: %.0f", brightness,
++              conf.max_brightness, screen_lux);
++
++        const float sensor_raw_corrected = std::max(event.u.scalar - screen_lux, 0.0f);
++
++        ALOGV("sensor_raw_corrected: %f", sensor_raw_corrected);
++
++        const float sensor_raw_calibrated = event.u.scalar * conf.calib_gain;
++        if (state.force_update || sensor_raw_calibrated < 10000.0 ||
++            screen_lux <= event.u.scalar * 1.35) {
++            const float sensor_corrected = sensor_raw_corrected * conf.calib_gain;
++            for (const auto& range : hysteresis_ranges) {
++                if (sensor_corrected <= range.middle) {
++                    state.hyst_min = range.min;
++                    state.hyst_max = range.max + screen_lux;
++                    break;
++                }
++            }
++            event.u.scalar = sensor_corrected;
++            state.last_corrected_value = sensor_corrected;
++            ALOGV("Fully corrected sensor value: %.0f lux", sensor_corrected);
++        } else {
++            event.u.scalar = state.last_corrected_value;
++            ALOGV("Reusing cached value: %.0f lux", event.u.scalar);
++        }
++
++        state.force_update = false;
++    } else {
++        event.u.scalar = state.last_corrected_value;
++        ALOGV("Reusing cached value: %.0f lux", event.u.scalar);
++    }
++}
++
++}  // namespace qsh_wrapper
++}  // namespace implementation
++}  // namespace subhal
++}  // namespace V2_1
++}  // namespace sensors
++}  // namespace hardware
++}  // namespace android
+diff --git a/sensors/AlsCorrection.h b/sensors/AlsCorrection.h
+new file mode 100644
+index 0000000..1fbdacc
+--- /dev/null
++++ b/sensors/AlsCorrection.h
+@@ -0,0 +1,32 @@
++/*
++ * Copyright (C) 2021-2024 The LineageOS Project
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#pragma once
++
++#include <aidl/vendor/lineage/oplus_als/BnAreaCapture.h>
++#include <android/hardware/sensors/2.1/types.h>
++
++namespace android {
++namespace hardware {
++namespace sensors {
++namespace V2_1 {
++namespace subhal {
++namespace implementation {
++namespace qsh_wrapper {
++
++class AlsCorrection {
++  public:
++    static void init();
++    static void process(Event& event);
++};
++
++}  // namespace qsh_wrapper
++}  // namespace implementation
++}  // namespace subhal
++}  // namespace V2_1
++}  // namespace sensors
++}  // namespace hardware
++}  // namespace android
+diff --git a/sensors/Android.bp b/sensors/Android.bp
+index f726453..70fd330 100644
+--- a/sensors/Android.bp
++++ b/sensors/Android.bp
+@@ -8,6 +8,7 @@ cc_library_shared {
+     name: "sensors.qsh_wrapper",
+     defaults: ["hidl_defaults"],
+     srcs: [
++        "AlsCorrection.cpp",
+         "SensorsSubHal.cpp",
+     ],
+     shared_libs: [
+@@ -15,8 +16,12 @@ cc_library_shared {
+         "android.hardware.sensors@2.0-ScopedWakelock",
+         "android.hardware.sensors@2.1",
+         "libbase",
++        "libbinder",
++        "libbinder_ndk",
+         "libhidlbase",
++        "liblog",
+         "libutils",
++        "vendor.lineage.oplus_als-V1-ndk",
+     ],
+     header_libs: [
+         "android.hardware.sensors@2.X-multihal.header",
+diff --git a/sensors/SensorsSubHal.cpp b/sensors/SensorsSubHal.cpp
+index ff749c3..a936fd4 100644
+--- a/sensors/SensorsSubHal.cpp
++++ b/sensors/SensorsSubHal.cpp
+@@ -5,6 +5,8 @@
+ 
+ #include "SensorsSubHal.h"
+ 
++#include "AlsCorrection.h"
++
+ #include <android-base/logging.h>
+ #include <dlfcn.h>
+ #include <hardware/sensors.h>
+@@ -26,7 +28,7 @@ constexpr auto kTypeUnderScreenRgbSensor = 33171070;
+ 
+ // This is larger than any sensor handle returned by the HAL
+ constexpr auto kWrappedSensorHandleBase = 0x10000;
+-inline int32_t IsWrappedHandle(int32_t sensor_handle) {
++inline bool IsWrappedHandle(int32_t sensor_handle) {
+     return sensor_handle >= kWrappedSensorHandleBase;
+ }
+ inline int32_t FromWrappedHandle(int32_t sensor_handle) {
+@@ -89,17 +91,29 @@ Return<void> SensorsSubHal::configDirectReport(int32_t sensor_handle, int32_t ch
+ 
+ Return<void> SensorsSubHal::getSensorsList_2_1(ISensors::getSensorsList_2_1_cb _hidl_cb) {
+     return impl_->getSensorsList_2_1([&](const auto& _hidl_out_list) {
+-        auto it = std::find_if(_hidl_out_list.begin(), _hidl_out_list.end(), [](auto&& v) {
++        const bool has_light_sensor = std::any_of(_hidl_out_list.begin(), _hidl_out_list.end(), [](const SensorInfo &s) {
++            return s.type == SensorType::LIGHT;
++        });
++        auto high_pwm_it = std::find_if(_hidl_out_list.begin(), _hidl_out_list.end(), [](auto&& v) {
+             return static_cast<int32_t>(v.type) == kTypeUnderScreenRgbSensor;
+         });
+-        if (it != _hidl_out_list.end()) {
++
++        if (has_light_sensor || high_pwm_it != _hidl_out_list.end()) {
++            AlsCorrection::init();
++        }
++
++        if (high_pwm_it != _hidl_out_list.end()) {
++            if (has_light_sensor) {
++                LOG(ERROR) << "A light sensor already exists while trying to create another one.";
++            }
++
+             auto last = _hidl_out_list.size();
+             auto sensors = hidl_vec<SensorInfo>(last + 1);
+             std::copy(_hidl_out_list.begin(), _hidl_out_list.end(), sensors.begin());
+ 
+-            handle_type_[it->sensorHandle] = it->type;
++            handle_type_[high_pwm_it->sensorHandle] = high_pwm_it->type;
+ 
+-            sensors[last] = *it;
++            sensors[last] = *high_pwm_it;
+             sensors[last].sensorHandle = ToWrappedHandle(sensors[last].sensorHandle);
+             sensors[last].name = "Aliased Light Sensor";
+             sensors[last].type = SensorType::LIGHT;
+@@ -151,21 +165,19 @@ Return<void> SensorsSubHal::onDynamicSensorsConnected_2_1(
+ }
+ 
+ void SensorsSubHal::postEvents(const std::vector<Event>& events, ScopedWakelock wakelock) {
+-    std::vector<Event> wrapped_events;
+-    for (auto&& e : events) {
++    std::vector<Event> processed_events(events);
++    for (auto &e : processed_events) {
+         if (static_cast<int32_t>(e.sensorType) == kTypeUnderScreenRgbSensor) {
+-            auto event_copy = e;
+-            event_copy.sensorHandle = ToWrappedHandle(e.sensorHandle);
+-            event_copy.sensorType = SensorType::LIGHT;
+-            wrapped_events.emplace_back(std::move(event_copy));
++            e.sensorHandle = ToWrappedHandle(e.sensorHandle);
++            AlsCorrection::process(e); // REVISIT
++        }
++
++        if (e.sensorType == SensorType::LIGHT) {
++            AlsCorrection::process(e);
+         }
+     }
+-    if (wrapped_events.empty()) {
+-        hal_proxy_callback_->postEvents(events, std::move(wakelock));
+-    } else {
+-        wrapped_events.insert(wrapped_events.end(), events.begin(), events.end());
+-        hal_proxy_callback_->postEvents(wrapped_events, std::move(wakelock));
+-    }
++
++    hal_proxy_callback_->postEvents(processed_events, std::move(wakelock));
+ }
+ 
+ ScopedWakelock SensorsSubHal::createScopedWakelock(bool lock) {
+diff --git a/sepolicy/private/compat/202404/202404.ignore.cil b/sepolicy/private/compat/202404/202404.ignore.cil
+new file mode 100644
+index 0000000..50f4771
+--- /dev/null
++++ b/sepolicy/private/compat/202404/202404.ignore.cil
+@@ -0,0 +1,9 @@
++;; new_objects - a collection of types that have been introduced that have no
++;;   analogue in older policy.  Thus, we do not need to map these types to
++;;   previous ones.  Add here to pass checkapi tests.
++(type new_objects)
++(typeattribute new_objects)
++(typeattributeset new_objects
++  ( new_objects
++    hal_lineage_oplus_als_aidl_service
++    vendor_sensors_als_prop))
+diff --git a/sepolicy/private/file_contexts b/sepolicy/private/file_contexts
+new file mode 100644
+index 0000000..d15fd15
+--- /dev/null
++++ b/sepolicy/private/file_contexts
+@@ -0,0 +1,2 @@
++# Sensors
++/(system_ext|system/system_ext)/bin/hw/vendor\.lineage\.oplus_als.service    u:object_r:hal_lineage_oplus_als_aidl_exec:s0
+diff --git a/sepolicy/private/hal_lineage_oplus_als_aidl.te b/sepolicy/private/hal_lineage_oplus_als_aidl.te
+new file mode 100644
+index 0000000..134405c
+--- /dev/null
++++ b/sepolicy/private/hal_lineage_oplus_als_aidl.te
+@@ -0,0 +1,28 @@
++type hal_lineage_oplus_als_aidl, domain, coredomain;
++binder_use(hal_lineage_oplus_als_aidl)
++
++allow hal_lineage_oplus_als_aidl fwk_stats_service:service_manager find;
++binder_call(hal_lineage_oplus_als_aidl, system_server)
++
++hal_server_domain(hal_lineage_oplus_als_aidl, hal_lineage_oplus_als)
++
++type hal_lineage_oplus_als_aidl_exec, exec_type, system_file_type, file_type;
++init_daemon_domain(hal_lineage_oplus_als_aidl)
++
++binder_call(hal_lineage_oplus_als_client, hal_lineage_oplus_als_server)
++
++hal_attribute_service(hal_lineage_oplus_als, hal_lineage_oplus_als_aidl_service)
++
++hal_client_domain(hal_lineage_oplus_als_aidl, hal_graphics_allocator)
++
++binder_call(hal_lineage_oplus_als_aidl, surfaceflinger)
++binder_call(surfaceflinger, hal_lineage_oplus_als_aidl)
++
++allow hal_lineage_oplus_als_aidl hal_graphics_allocator_hwservice:hwservice_manager find;
++allow hal_lineage_oplus_als_aidl hal_graphics_mapper_hwservice:hwservice_manager find;
++
++allow hal_lineage_oplus_als_aidl surfaceflinger_service:service_manager find;
++
++allow hal_lineage_oplus_als_aidl ion_device:chr_file rw_file_perms;
++
++get_prop(hal_lineage_oplus_als_aidl, vendor_sensors_als_prop)
+diff --git a/sepolicy/private/property_contexts b/sepolicy/private/property_contexts
+new file mode 100644
+index 0000000..f4199e4
+--- /dev/null
++++ b/sepolicy/private/property_contexts
+@@ -0,0 +1,2 @@
++# Sensors
++vendor.sensors.als_correction.    u:object_r:vendor_sensors_als_prop:s0
+diff --git a/sepolicy/private/service_contexts b/sepolicy/private/service_contexts
+new file mode 100644
+index 0000000..73694c7
+--- /dev/null
++++ b/sepolicy/private/service_contexts
+@@ -0,0 +1,2 @@
++# Sensors
++vendor.lineage.oplus_als.IAreaCapture/default    u:object_r:hal_lineage_oplus_als_aidl_service:s0
+diff --git a/sepolicy/public/attributes b/sepolicy/public/attributes
+new file mode 100644
+index 0000000..8b571ca
+--- /dev/null
++++ b/sepolicy/public/attributes
+@@ -0,0 +1 @@
++hal_attribute(lineage_oplus_als)
+diff --git a/sepolicy/public/property.te b/sepolicy/public/property.te
+new file mode 100644
+index 0000000..7c0d7ba
+--- /dev/null
++++ b/sepolicy/public/property.te
+@@ -0,0 +1 @@
++system_public_prop(vendor_sensors_als_prop)
+diff --git a/sepolicy/public/service.te b/sepolicy/public/service.te
+new file mode 100644
+index 0000000..4772409
+--- /dev/null
++++ b/sepolicy/public/service.te
+@@ -0,0 +1 @@
++type hal_lineage_oplus_als_aidl_service, hal_service_type, service_manager_type;
+diff --git a/sepolicy/vendor/hal_sensors_default.te b/sepolicy/vendor/hal_sensors_default.te
+new file mode 100644
+index 0000000..566d788
+--- /dev/null
++++ b/sepolicy/vendor/hal_sensors_default.te
+@@ -0,0 +1,4 @@
++binder_use(hal_sensors_default)
++hal_client_domain(hal_sensors_default, hal_lineage_oplus_als)
++
++get_prop(hal_sensors_default, vendor_sensors_als_prop)
+diff --git a/sepolicy/vendor/vendor_init.te b/sepolicy/vendor/vendor_init.te
+new file mode 100644
+index 0000000..afa7aec
+--- /dev/null
++++ b/sepolicy/vendor/vendor_init.te
+@@ -0,0 +1 @@
++set_prop(vendor_init, vendor_sensors_als_prop)
+diff --git a/vendor.prop b/vendor.prop
+index 8f4252e..3612abc 100644
+--- a/vendor.prop
++++ b/vendor.prop
+@@ -131,7 +131,7 @@ vendor.gatekeeper.is_security_level_spu=0
+ 
+ # Graphics
+ debug.graphics.game_default_frame_rate.disabled=0
+-debug.sf.auto_latch_unsignaled=0
++debug.sf.auto_latch_unsignaled=1
+ debug.sf.early.app.duration=13666666
+ debug.sf.earlyGl.app.duration=13666666
+ debug.sf.earlyGl.sf.duration=10500000
+@@ -139,6 +139,7 @@ debug.sf.early.sf.duration=10500000
+ debug.sf.enable_advanced_sf_phase_offset=1
+ debug.sf.enable_gl_backpressure=1
+ debug.sf.enable_hwc_vds=0
++debug.sf.latch_unsignaled=0
+ debug.sf.late.app.duration=13666666
+ debug.sf.late.sf.duration=10500000
+ debug.sf.predict_hwc_composition_strategy=0
+-- 
+2.54.0
+
