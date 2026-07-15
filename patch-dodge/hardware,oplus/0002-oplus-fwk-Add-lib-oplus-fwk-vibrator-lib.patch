@@ -1,7 +1,7 @@
-From c24f50693621469765218afb34c535387d90278d Mon Sep 17 00:00:00 2001
-From: Kill3rEz <98993017+Kill3rEz@users.noreply.github.com>
+From 2a97d7eb835160935dd319d6ec7cc1cf9ad3326b Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sat, 11 Jul 2026 13:04:11 +0800
-Subject: [PATCH 2/3] oplus-fwk: Add lib oplus-fwk-vibrator-lib
+Subject: [PATCH 2/4] oplus-fwk: Add lib oplus-fwk-vibrator-lib
 
 Use our vibrator shims instead of those provided in "base: Implement mock oplus LinearmotorVibratorService"
 ---
@@ -9,7 +9,7 @@ Use our vibrator shims instead of those provided in "base: Implement mock oplus 
  1 file changed, 15 insertions(+)
 
 diff --git a/oplus-fwk/Android.bp b/oplus-fwk/Android.bp
-index 019b81c5..f544a4d2 100644
+index 019b81c..f544a4d 100644
 --- a/oplus-fwk/Android.bp
 +++ b/oplus-fwk/Android.bp
 @@ -13,3 +13,18 @@ java_library {
@@ -32,5 +32,5 @@ index 019b81c5..f544a4d2 100644
 +    ],
 +}
 -- 
-2.55.0
+2.54.0
 

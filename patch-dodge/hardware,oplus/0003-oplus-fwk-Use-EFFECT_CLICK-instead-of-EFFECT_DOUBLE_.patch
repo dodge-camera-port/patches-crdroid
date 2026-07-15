@@ -1,7 +1,7 @@
-From 682409de3bb770009bf0aed60d413efb0ccc2eeb Mon Sep 17 00:00:00 2001
+From 6ab88dc5c5e1d97b18c80ba53a5295aeb4d4627d Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sat, 11 Jul 2026 19:00:24 +0800
-Subject: [PATCH 3/3] oplus-fwk: Use EFFECT_CLICK instead of
+Subject: [PATCH 3/4] oplus-fwk: Use EFFECT_CLICK instead of
  EFFECT_DOUBLE_CLICK in LinearmotorVibrator
 
 In Oplus Camera it works better
@@ -10,7 +10,7 @@ In Oplus Camera it works better
  1 file changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/oplus-fwk/src/com/oplus/os/LinearmotorVibrator.java b/oplus-fwk/src/com/oplus/os/LinearmotorVibrator.java
-index 3c838f7c..ec705f3e 100644
+index 3c838f7..ec705f3 100644
 --- a/oplus-fwk/src/com/oplus/os/LinearmotorVibrator.java
 +++ b/oplus-fwk/src/com/oplus/os/LinearmotorVibrator.java
 @@ -22,12 +22,12 @@ public class LinearmotorVibrator {
@@ -70,5 +70,5 @@ index 3c838f7c..ec705f3e 100644
      }
  }
 -- 
-2.55.0
+2.54.0
 

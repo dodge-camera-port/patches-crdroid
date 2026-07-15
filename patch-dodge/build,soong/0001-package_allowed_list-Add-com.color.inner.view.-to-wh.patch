@@ -1,0 +1,23 @@
+From 1601e64ace95dd64efd4fd6fa77c8e793e7bb8ea Mon Sep 17 00:00:00 2001
+From: osm1019 <osm1019@gmail.com>
+Date: Wed, 15 Jul 2026 13:52:16 +0800
+Subject: [PATCH] package_allowed_list: Add com.color.inner.view.* to whitelist
+
+---
+ scripts/check_boot_jars/package_allowed_list.txt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/scripts/check_boot_jars/package_allowed_list.txt b/scripts/check_boot_jars/package_allowed_list.txt
+index 30952e1..f3b0177 100644
+--- a/scripts/check_boot_jars/package_allowed_list.txt
++++ b/scripts/check_boot_jars/package_allowed_list.txt
+@@ -324,3 +324,6 @@ com.xiaomi.extensions.*
+ # Pop-Up View
+ org.rising
+ org.rising.view
++
++# OnePlus Framework
++com\.color\.inner\.view\.*
+-- 
+2.54.0
+
