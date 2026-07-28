@@ -1,7 +1,7 @@
 From 9e9271995a60f35e294b6b140d473ef15fd87561 Mon Sep 17 00:00:00 2001
 From: klozz <carlosj@klozz.dev>
 Date: Mon, 23 Feb 2026 17:05:53 -0600
-Subject: [PATCH 9/9] dodge: add SDRHDR brightness
+Subject: [PATCH 09/10] dodge: add SDRHDR brightness
 
 Change-Id: I1d5b0057f574e0dec118df4d2775dd70e574479c
 Signed-off-by: klozz <carlosj@klozz.dev>
@@ -31,5 +31,5 @@ index 45d6909..82e7d03 100644
  
      <screenBrightnessRampFastDecrease>0.5</screenBrightnessRampFastDecrease>
 -- 
-2.54.0
+2.55.0
 

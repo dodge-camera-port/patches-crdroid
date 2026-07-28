@@ -1,7 +1,7 @@
 From e16acd61b7e1f65208e13fcea99b118b5da13bc5 Mon Sep 17 00:00:00 2001
 From: spkal01 <kalligeross@gmail.com>
 Date: Mon, 29 Jun 2026 21:56:21 +0800
-Subject: [PATCH 4/9] dodge: Swap RED/BLUE in GLSL shader inside
+Subject: [PATCH 04/10] dodge: Swap RED/BLUE in GLSL shader inside
  libBasicTonePhoto.so
 
 * Work arond Master mode red blue swap issue
@@ -32,5 +32,5 @@ index c2ccc42..bc40b36 100755
          .replace_needed('android.hardware.sensors-V2-ndk.so', 'android.hardware.sensors-V3-ndk.so'),
      (
 -- 
-2.54.0
+2.55.0
 
