@@ -1,4 +1,4 @@
-From fd3c251abd2afb6f2e638762501d559298c3c4b3 Mon Sep 17 00:00:00 2001
+From 7e037ca0760bb8a3a0c62814104768ff0de17ab0 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Sat, 11 Jul 2026 12:19:18 +0800
 Subject: [PATCH 6/7] Revert "Launcher3: Add optional toggle for app launch

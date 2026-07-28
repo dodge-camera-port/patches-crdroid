@@ -1,4 +1,4 @@
-From a56aaa1986b8cc0c3a154bc7c83d18b00ab197b9 Mon Sep 17 00:00:00 2001
+From 449e4a30647466a0492b7bbc6737d53709c5fab2 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Tue, 30 Jun 2026 13:36:33 +0800
 Subject: [PATCH 7/7] Add optional home to app and app to home animation

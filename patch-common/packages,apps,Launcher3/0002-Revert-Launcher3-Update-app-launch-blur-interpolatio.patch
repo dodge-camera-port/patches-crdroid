@@ -1,4 +1,4 @@
-From bb39a9eb12428f719bf39d819f2b17990aeefc05 Mon Sep 17 00:00:00 2001
+From 49ca17e2e9347e562a4bad267874ded42615a50f Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Tue, 30 Jun 2026 12:11:18 +0800
 Subject: [PATCH 2/7] Revert "Launcher3: Update app launch blur interpolation"
