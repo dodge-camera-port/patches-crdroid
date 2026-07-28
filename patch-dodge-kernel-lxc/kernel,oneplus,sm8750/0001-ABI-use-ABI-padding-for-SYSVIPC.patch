@@ -1,0 +1,42 @@
+From eeba04523501a023e17f5261fce2a05d2d6e1ce9 Mon Sep 17 00:00:00 2001
+From: nullptr-t-oss <127822226+nullptr-t-oss@users.noreply.github.com>
+Date: Tue, 28 Jul 2026 20:07:44 +0800
+Subject: [PATCH 1/2] ABI: use ABI padding for SYSVIPC
+
+---
+ include/linux/sched.h | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index a5d97228f..fe720b53f 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1076,8 +1076,8 @@ struct task_struct {
+ 	struct nameidata		*nameidata;
+ 
+ #ifdef CONFIG_SYSVIPC
+-	struct sysv_sem			sysvsem;
+-	struct sysv_shm			sysvshm;
++//	struct sysv_sem			sysvsem;
++//	struct sysv_shm			sysvshm;
+ #endif
+ #ifdef CONFIG_DETECT_HUNG_TASK
+ 	unsigned long			last_switch_count;
+@@ -1530,9 +1530,14 @@ struct task_struct {
+ 	ANDROID_KABI_RESERVE(3);
+ 	ANDROID_KABI_RESERVE(4);
+ 	ANDROID_KABI_RESERVE(5);
++#ifdef CONFIG_SYSVIPC
++	ANDROID_KABI_USE(6, struct sysv_sem sysvsem);
++	_ANDROID_KABI_REPLACE(ANDROID_KABI_RESERVE(7); ANDROID_KABI_RESERVE(8), struct sysv_shm sysvshm);
++#else
+ 	ANDROID_KABI_RESERVE(6);
+ 	ANDROID_KABI_RESERVE(7);
+ 	ANDROID_KABI_RESERVE(8);
++#endif
+ 
+ #ifdef CONFIG_RV
+ 	/*
+-- 
+2.55.0
+

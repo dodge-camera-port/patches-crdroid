@@ -1,0 +1,22 @@
+From 062b653012be40a9d9de1a523cac8ed7a888d0cd Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Tue, 28 Jul 2026 20:05:41 +0800
+Subject: [PATCH] dodge: Do not enforce kernel vintf requirements
+
+---
+ device.mk | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/device.mk b/device.mk
+index 86d294f..8f4f10b 100644
+--- a/device.mk
++++ b/device.mk
+@@ -102,3 +102,5 @@ $(call inherit-product, vendor/oneplus/dodge/dodge-vendor.mk)
+ 
+ # Camera
+ $(call inherit-product-if-exists, vendor/oplus/camera/opluscamera.mk)
++
++PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
+-- 
+2.55.0
+

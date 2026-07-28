@@ -1,0 +1,58 @@
+From b64263426b6c741656821f5a6ededa8be5024f37 Mon Sep 17 00:00:00 2001
+From: ravindu644 <droidcasts@protonmail.com>
+Date: Tue, 28 Jul 2026 20:08:04 +0800
+Subject: [PATCH 2/2] dodge: Enable configs for LXC
+
+---
+ .../configs/vendor/oplus/sun_perf.config      | 38 +++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+
+diff --git a/arch/arm64/configs/vendor/oplus/sun_perf.config b/arch/arm64/configs/vendor/oplus/sun_perf.config
+index 12f5478bd..c5b1cd0da 100644
+--- a/arch/arm64/configs/vendor/oplus/sun_perf.config
++++ b/arch/arm64/configs/vendor/oplus/sun_perf.config
+@@ -107,3 +107,41 @@ CONFIG_USB_CONFIGFS_RNDIS=m
+ CONFIG_UFSFEATURE=y
+ CONFIG_UFSHID=y
+ CONFIG_UFSHID_POC=y
++
++# Kernel configurations for full DroidSpaces support for GKI
++# Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
++
++# IPC
++CONFIG_SYSVIPC=y
++CONFIG_POSIX_MQUEUE=y
++
++# Namespaces
++CONFIG_IPC_NS=y
++CONFIG_PID_NS=y
++
++# HW Access Support
++CONFIG_DEVTMPFS=y
++
++# Networking (Enhanced NAT support)
++CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y
++
++# --- Below configs are optional but recommended ---
++
++# Fix for docker unsafe procfs error
++CONFIG_USER_NS=y
++
++# UFW support
++CONFIG_NETFILTER_XT_TARGET_REJECT=y
++CONFIG_NETFILTER_XT_TARGET_LOG=y
++CONFIG_NETFILTER_XT_MATCH_RECENT=y
++
++# Fail2ban support
++CONFIG_IP_SET=y
++CONFIG_IP_SET_HASH_IP=y
++CONFIG_IP_SET_HASH_NET=y
++CONFIG_NETFILTER_XT_SET=y
++
++# Enable xattr, posix acl support on tmpfs
++# For NixOS support
++CONFIG_TMPFS_POSIX_ACL=y
++CONFIG_TMPFS_XATTR=y
+-- 
+2.55.0
+
