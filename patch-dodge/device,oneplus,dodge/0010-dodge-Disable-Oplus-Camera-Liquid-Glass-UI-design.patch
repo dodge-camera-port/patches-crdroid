@@ -1,7 +1,7 @@
 From 56b51c6028cc2659bef746385a0048963e6fcca7 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Tue, 28 Jul 2026 14:32:35 +0800
-Subject: [PATCH 10/11] dodge: Disable Oplus Camera Liquid Glass UI design
+Subject: [PATCH 10/12] dodge: Disable Oplus Camera Liquid Glass UI design
 
 Based on https://github.com/dodge-camera-port/oplus-camera-config-dump
 

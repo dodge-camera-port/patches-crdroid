@@ -1,7 +1,7 @@
 From 3db0db680e696ba9da8eb11b2c010a265f4f46c2 Mon Sep 17 00:00:00 2001
 From: Hecheng Yu <kde-yyds@qq.com>
 Date: Tue, 28 Jul 2026 14:32:47 +0800
-Subject: [PATCH 11/11] dodge: Unlock Oplus Camera 120fps video config
+Subject: [PATCH 11/12] dodge: Unlock Oplus Camera 120fps video config
 
 Co-authored-by: osm1019 <osm1019@gmail.com>
 ---
