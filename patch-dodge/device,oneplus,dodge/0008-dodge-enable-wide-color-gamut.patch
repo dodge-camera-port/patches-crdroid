@@ -1,7 +1,7 @@
 From e8678aed48791af7b42c1ddf626bd38de09f9a96 Mon Sep 17 00:00:00 2001
 From: Chenyang Zhong <zhongcy95@gmail.com>
 Date: Sun, 26 Oct 2025 07:57:14 -0400
-Subject: [PATCH 08/10] dodge: enable wide color gamut
+Subject: [PATCH 08/11] dodge: enable wide color gamut
 
 Change-Id: Ife37d3b68e880f21cc7ee2013c62722e40aa1d5d
 Signed-off-by: klozz <carlosj@klozz.dev>
